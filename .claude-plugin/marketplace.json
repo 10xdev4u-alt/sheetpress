@@ -16,7 +16,7 @@
       "name": "answer-me-always",
       "source": "./plugins/answer-me-always",
       "description": "可选的高频模式：每轮提醒 Agent 给出结论时附一页 HTML。需要同时安装 answer-me。",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "category": "visualization"
     }
   ]

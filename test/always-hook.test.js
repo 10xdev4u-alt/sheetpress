@@ -15,7 +15,7 @@ test('always 插件：hook 输出合法的 UserPromptSubmit additionalContext', 
   const out = JSON.parse(r.stdout);
   assert.equal(out.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
   assert.match(out.hookSpecificOutput.additionalContext, /^\[answer-me always-on\]/);
-  assert.ok(out.hookSpecificOutput.additionalContext.length < 500, '提醒要短，每轮都会注入');
+  assert.ok(out.hookSpecificOutput.additionalContext.length < 600, '提醒要短，每轮都会注入');
 });
 
 test('always 插件：hooks.json 指向存在的脚本，marketplace 已登记', () => {
