@@ -1,0 +1,306 @@
+<p align="center">
+  <img src="docs/logo.svg" width="64" height="64" alt="Answer me with HTML logo">
+</p>
+
+<h1 align="center">Answer me with HTML</h1>
+
+<p align="center">
+  <b>一个 Agent Skill：遇到复杂问题，Agent 不再甩给你一堵文字墙，而是给你一页能看懂的 HTML。</b>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
+  <a href="https://github.com/QingYunA/answer-me-with-html/actions/workflows/ci.yml"><img src="https://github.com/QingYunA/answer-me-with-html/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Cursor%20%C2%B7%20OpenCode-black" alt="Works with Claude Code, Codex, Cursor, OpenCode">
+</p>
+
+<p align="center">
+  <a href="README.md">English</a> · <b>简体中文</b>
+</p>
+
+装好之后，像平时一样提问就行：
+
+```
+> 讲讲 TCP 三次握手和四次挥手
+> 画一下这个仓库的模块关系
+> Redis 和 Memcached 该怎么选
+```
+
+Agent 会写一份很短的 Markdown 稿件，交给 skill 自带的 CLI。大约 50 毫秒后，你就得到一页：
+
+<p align="center">
+  <img src="docs/demo/demo.gif" alt="演示：Agent 在终端回答，并附上生成的页面" width="100%">
+</p>
+
+<p align="center"><sub>13 秒演示。<a href="docs/demo/demo.mp4">下载 MP4</a>。</sub></p>
+
+## 安装
+
+需要本机装有 [Node.js](https://nodejs.org/) 20 或更高版本。不需要 `npm install`，CLI 已经打包在 skill 里了。
+
+### 让 Agent 帮你装（推荐）
+
+把下面这段话粘贴给你的 Agent。Claude Code、Codex、Cursor、OpenCode 都可以：
+
+> 帮我安装 Answer me with HTML 这个 skill：运行 `npx -y skills add QingYunA/answer-me-with-html -g -y`，用 `-a` 参数指定你自己这个 Agent（比如 Claude Code 是 `-a claude-code`）。装好后读一遍它的 SKILL.md，然后用它生成一页"TCP 三次握手"的解释页，确认能正常生成。
+
+### Claude Code 插件
+
+在 Claude Code 里执行：
+
+```
+/plugin marketplace add QingYunA/answer-me-with-html
+/plugin install answer-me-with-html@answer-me-with-html
+```
+
+### 一条命令
+
+```bash
+npx skills add QingYunA/answer-me-with-html
+```
+
+它会问你装到哪个 Agent。安装器来自 [vercel-labs/skills](https://github.com/vercel-labs/skills)，支持 70 多种 Agent。
+
+<details>
+<summary>手动安装</summary>
+
+把 `skills/answer-me-with-html` 这个目录放进你的 Agent 的 skill 目录就行。以 Claude Code 为例：
+
+```bash
+git clone --depth 1 https://github.com/QingYunA/answer-me-with-html.git /tmp/answer-me-with-html
+cp -R /tmp/answer-me-with-html/skills/answer-me-with-html ~/.claude/skills/answer-me-with-html
+```
+
+其他 Agent 的 skill 目录：Codex 是 `~/.codex/skills/`，Cursor 是 `~/.cursor/skills/`，OpenCode 是 `~/.config/opencode/skill/`。
+
+</details>
+
+装好后不需要任何配置。
+
+## 你说什么，会得到什么
+
+| 你说 | 你会得到 |
+| :--- | :--- |
+| "讲讲 TCP 三次握手" | 时序图、状态迁移图、标志位对照表 |
+| "这个仓库的模块是怎么组织的" | 目录结构树，加一张模块调用关系图 |
+| "Redis 和 Memcached 怎么选" | 多维对比表，用 ✓ ✗ 标出差异，最后给结论 |
+| "这段文案哪里写得不好" | 逐句标注，标出问题词和改法 |
+| "Kubernetes 是怎么发展起来的" | 时间线，关键节点高亮 |
+| "`ls` 怎么看隐藏文件" | 不出页面。一句话能说清的问题照常回答 |
+
+要不要出页面由 Agent 判断：概念之间关系复杂、有多步流程、要做多维对比，才会出页面。你也可以直接说"用 HTML 讲一下……"。
+
+页面保存在 `~/.answer-me-with-html/pages/`。页面右上角可以切换主题、切换亮暗，也可以复制生成这一页的 Markdown 原稿。
+
+## 配置
+
+用斜杠命令改配置，不用手动编辑配置文件。
+
+| 在哪里 | 怎么改 |
+| :--- | :--- |
+| Claude Code（插件安装） | `/answer-me-with-html:config` 会问你要改什么；`/answer-me-with-html:config open off` 直接改 |
+| 任意 Agent | `/answer-me-with-html config open off`，或者直接说"别再自动弹浏览器了" |
+| 终端 | `am config` 查看，`am config set open off` 修改，`am config reset` 恢复默认 |
+
+| 配置项 | 默认值 | 作用 |
+| :--- | :--- | :--- |
+| `open` | `on` | 生成后自动用浏览器打开。嫌弹窗打扰就关掉 |
+| `always` | `on` | 高频模式开关（见下一节），只在装了高频插件时有用 |
+| `theme` | `blueprint` | 默认主题：`blueprint` 或 `shadcn` |
+| `mode` | `auto` | 默认明暗：`auto`、`light` 或 `dark` |
+| `style` | `80` | 写作检查：`off`、`80`（只提醒）或 `strict`（不达标不生成） |
+
+配置保存在 `~/.answer-me-with-html/config.json`。稿件里写明的主题优先于默认值。`--open` 和 `--no-open` 只影响这一次。
+
+## 高频模式（可选）
+
+默认情况下，只有问题需要时 Agent 才会出页面。如果你希望它**每次给结论都附一页**，可以打开高频模式。
+
+打开后，Agent 每轮都会收到一句很短的提醒（约 90 个 token）。只要这一轮给出了结论、总结、方案或对比，哪怕回答很短，它也会顺手出一页 2～4 个面板的小页面，并在回复最后附上路径。这些页面只生成、不弹出，不会打断你手上的事。闲聊、没有结论的一两句话不受影响。Claude Code 处于 plan 模式时不会出页面。
+
+**Claude Code：** 再装一个插件就行。
+
+```
+/plugin marketplace add QingYunA/answer-me-with-html
+/plugin install answer-me-with-html-always@answer-me-with-html
+```
+
+想暂停，执行 `/answer-me-with-html:config always off`，不用卸载。
+
+**其他 Agent：** 把下面这段话粘贴给你的 Agent，让它写进自己的规则文件（比如 `AGENTS.md`）：
+
+> 帮我打开 Answer me with HTML 的高频模式：在你的全局规则文件里加一条规则——"[answer-me-with-html always-on] 只要回复里给出了结论、总结、方案、对比、评审或讲解，就同时用 answer-me-with-html skill 生成一页 HTML（日常结论用 2～4 个面板），并在回复最后附上页面路径。哪怕回答很短也要出，不要因为答案不长就跳过。渲染时加 --no-open，不要弹出浏览器。闲聊、没有结论的一两句话、纯命令输出、我要求纯文本时除外。"
+
+## 为什么做这个
+
+Karpathy 发过[一条推文](https://x.com/karpathy/status/2105819303471976479)。大意是 LLM 干的活越来越多，人反而越来越难跟上它的输出。比起读一大段文字，看一张图、一页网页要轻松得多。
+
+我试过让 Agent 直接用 HTML 回答问题。效果不错，就是太慢。
+
+一页像样的网页要等一两分钟。大半时间花在输出几百行 CSS 上，而这些 CSS 每次都差不多。画流程图更麻烦：模型得自己算 SVG 坐标，连线经常歪掉，箭头指到空白处。
+
+所以 Answer me with HTML 把这些活从模型手里拿走了。模型只写内容，排版、配色、画图都交给 CLI。
+
+## 它是怎么变快的
+
+模型只需要写这样一份稿件：
+
+````markdown
+---
+title: TCP 三次握手与四次挥手
+---
+## A 三次握手 {span=2}
+```sequence num
+客户端 -> 服务器: SYN, seq=x
+服务器 -> 客户端: SYN+ACK, seq=y, ack=x+1
+客户端 -> 服务器: ACK, ack=y+1
+note 客户端, 服务器: ESTABLISHED
+```
+
+## C 状态迁移 {span=2}
+```flow LR
+(CLOSED) -> LISTEN: 被动打开
+LISTEN -> SYN_RCVD: 收 SYN / 发 SYN+ACK
+SYN_RCVD -> *ESTABLISHED: 收 ACK
+```
+````
+
+剩下的都由 CLI 完成：选模板、排面板、套主题，用 [dagre](https://github.com/dagrejs/dagre) 算流程图坐标，按标签宽度拉开时序图间距。完整稿件 [examples/tcp.md](examples/tcp.md) 会生成这一页：
+
+<p align="center">
+  <img src="docs/images/tcp.png" alt="TCP 示例页面" width="100%">
+</p>
+
+模型要输出的内容，只有最终 HTML 的一小部分：
+
+| 示例 | 稿件 | 最终 HTML | 不算 CSS |
+| :--- | ---: | ---: | ---: |
+| [ste100](examples/ste100.md)（以文字和表格为主） | ≈1.4k tok | ≈10.8k tok（**7.8×**） | ≈5.0k tok（3.6×） |
+| [tcp](examples/tcp.md)（2 张时序图 + 1 张流程图） | ≈0.6k tok | ≈9.3k tok（**16×**） | ≈3.5k tok（6.1×） |
+| [architecture](examples/architecture.md)（流程图 + 时序图 + 树） | ≈0.4k tok | ≈8.4k tok（**19.5×**） | ≈2.6k tok（6.2×） |
+
+<sub>最终 HTML 的体积，就是模型手写出一模一样的页面时至少要输出的量。token 数按字符比例估算，没有用真实的分词器。</sub>
+
+图越多，省得越多。SVG 坐标正是模型写得最慢、最容易出错的部分。
+
+## 特性
+
+- **出错能自己改:** 稿件写错时，CLI 会给出行号、组件名和一段正确示例。Agent 照着改一次就行。
+- **两套主题:** blueprint 是图纸风，shadcn 是卡片风。都带亮色和暗色，页面上可以随时切换。
+- **单文件、零依赖:** 产物是一个 `.html`，不引用任何 CDN 或外部字体。断网也能打开，发给别人也能看。
+- **写作检查:** 按 ASD-STE100 的思路检查稿件里的文字。句子太长、用词太绕、被动语态都会提醒。默认只提醒，不拦着。
+- **能找回原稿:** 每页都内嵌了生成它的 Markdown。点"复制源稿"就能拿回来改。
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/ste100.png" alt="blueprint 图纸风"></td>
+    <td width="50%"><img src="docs/images/architecture-dark.png" alt="单栏模板，shadcn 暗色"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>blueprint 图纸风（<a href="examples/ste100.md">examples/ste100.md</a>）</sub></td>
+    <td align="center"><sub>单栏长文模板 + 暗色（<a href="examples/architecture.md">examples/architecture.md</a>）</sub></td>
+  </tr>
+</table>
+
+## 组件
+
+Agent 会按信息的形状挑组件：
+
+| 组件 | 适合什么 |
+| :--- | :--- |
+| `flow` | 架构、调用链、决策分支。自动布局，支持分组、判断框、数据库 |
+| `sequence` | 几方之间按时间顺序来回发消息 |
+| `tree` | 目录、模块、分类体系 |
+| `timeline` | 历史、版本、阶段 |
+| `limits` | 当前值和上限的对比 |
+| `annot` | 逐词点评一句话 |
+| `kv` | 元信息、图纸标题栏 |
+| `callout` | 结论、提示、警告 |
+| 表格 | 多维对比。单元格写 `ok` / `no` / `warn` 会变成 ✓ ✗ ! |
+
+<details>
+<summary>稿件格式（想自己写稿件时看）</summary>
+
+````markdown
+---
+template: sheet        # sheet 是多面板网格（默认），doc 是单栏长文加目录
+theme: blueprint       # blueprint 或 shadcn
+title: 页面标题
+subtitle: 一句话说明
+cols: 3                # sheet 的列数
+source: RFC 9293       # 其他任意字段会显示在标题下方
+---
+导语，写一两句核心结论。
+
+## A 面板标题 {span=2 meta="右上角的小字"}
+这里写普通 Markdown，段落、列表、表格都行。
+
+```flow LR
+A -> B: 标签
+```
+````
+
+- 每个 `## ` 开头的标题是一个面板。面板编号 A、B、C 可以不写，会自动补上。
+- `span=2` 让面板占两列，`rows=2` 让面板占两行，`bare` 会去掉面板的标题栏。
+- 组件覆盖不到的情况，可以用 ```` ```html ```` 或 ```` ```svg ```` 直接嵌入原始代码。
+
+每个组件的完整写法：`am help <组件名>`。
+
+</details>
+
+<details>
+<summary>不经过 Agent，直接用命令行</summary>
+
+CLI 就是 skill 目录里的 `scripts/am.mjs`：
+
+````bash
+AM=skills/answer-me-with-html/scripts/am.mjs
+
+node $AM render examples/tcp.md                  # 渲染并用浏览器打开
+node $AM render notes.md -o out.html --no-open   # 指定输出位置，不自动打开
+node $AM render notes.md --theme shadcn          # 这一次换主题
+node $AM lint notes.md                           # 只做写作检查
+node $AM list                                    # 列出所有组件
+node $AM config                                  # 查看配置
+
+# 从 stdin 读取，Agent 就是这样调用的
+node $AM render - <<'AM_EOF'
+## A 一个面板
+```flow
+A -> B: 你好
+```
+AM_EOF
+````
+
+页面默认保存在 `~/.answer-me-with-html/pages/`。环境变量 `AM_HOME` 可以改位置。
+
+</details>
+
+## STE 受控写作检查
+
+[ASD-STE100](https://www.asd-ste100.org/) 是一套受控英语，最早用来写飞机维修手册。它的规定很具体：句子不能太长，一个词只表达一个意思，操作步骤要用祈使句。Karpathy 提到，让 LLM 按这套规则写，读起来会清楚很多。
+
+Answer me with HTML 把其中容易用机器检查的部分做成了中英双语版，每次渲染时顺带检查：
+
+- **句长:** 操作步骤不超过 20 个英文词或 35 个汉字，描述性句子不超过 25 词或 45 字。每段最多 6 句。
+- **用词:** 英文换成常见词，比如 utilize 改成 use、prior to 改成 before。中文删掉虚动词，比如"进行优化"直接写"优化"。
+- **句式:** 提示英文被动语态、一句里用了三个以上的"的"，以及"赋能""闭环"这类套话。
+
+用 `/answer-me-with-html:config style strict` 调整严格程度，或者在单篇稿件里写 `style:`。
+
+## 开发
+
+```bash
+git clone https://github.com/QingYunA/answer-me-with-html.git && cd answer-me-with-html
+npm install
+npm test          # 跑测试
+npm run build     # 改了 src/ 之后，重新打包 skills/answer-me-with-html/scripts/am.mjs
+```
+
+运行时依赖只有两个：[marked](https://github.com/markedjs/marked) 负责解析 Markdown，[@dagrejs/dagre](https://github.com/dagrejs/dagre) 负责流程图布局。打包时它们会被一起打进 `am.mjs`。
+
+更新演示动图：用 [docs/demo/terminal.html](docs/demo/terminal.html) 和渲染好的 [examples/tcp.en.md](examples/tcp.en.md) 截好帧，再执行 `node docs/demo/make-gif.mjs <帧目录>`。
+
+## License
+
+[MIT](LICENSE)

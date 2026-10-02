@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>terminal mock</title>
+<!-- 演示动图用的终端模拟页：?step=1|2|3 逐步显示。由 docs/demo/make-gif.sh 截图合成。 -->
+<style>
+  body { margin: 0; background: #0b0d12; font: 17px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; color: #d6dae1; }
+  .win { width: 1120px; margin: 56px auto; border: 1px solid #2a2f3a; border-radius: 12px; overflow: hidden; background: #12151c; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .bar { height: 40px; background: #1a1e27; display: flex; align-items: center; gap: 8px; padding: 0 16px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: #3a3f4b; }
+  .bar span { margin-left: 12px; color: #7d8594; font-size: 14px; }
+  .body { padding: 26px 32px 34px; min-height: 560px; }
+  .prompt { color: #fff; }
+  .prompt b { color: #d97757; }
+  .tool { margin-top: 18px; }
+  .tool .name { color: #8ab4ff; }
+  .tool .dim, .dim { color: #7d8594; }
+  .ok { color: #6fd28a; }
+  .answer { margin-top: 18px; color: #e8ebf0; }
+  .answer strong { color: #fff; }
+  .path { color: #8ab4ff; text-decoration: underline; }
+  .bullet { color: #d97757; }
+  [data-step] { display: none; }
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>claude — ~/projects/net</span></div>
+  <div class="body">
+    <div class="prompt"><b>&gt;</b> Explain the TCP three-way handshake</div>
+
+    <div data-step="2">
+      <div class="tool"><span class="bullet">●</span> <span class="name">Skill</span>(answer-me-with-html)</div>
+      <div class="tool"><span class="bullet">●</span> <span class="name">Bash</span>(am render - &lt;&lt;'AM_EOF' …)</div>
+      <div class="dim">&nbsp;&nbsp;⎿&nbsp; <span class="ok">✓</span> ~/.answer-me-with-html/pages/TCP-three-way-handshake.html</div>
+      <div class="dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sheet · blueprint · 4 panels · sequence×1 flow×1 callout×1</div>
+      <div class="dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;STE ✓ 0 warnings · 48 ms</div>
+    </div>
+
+    <div data-step="3" class="answer">
+      <div><span class="bullet">●</span> <strong>Three messages open the connection:</strong> SYN, SYN+ACK, ACK.</div>
+      <div>&nbsp;&nbsp;Each side proves it can both send and receive. Two messages would let a late,</div>
+      <div>&nbsp;&nbsp;duplicate SYN open a useless connection.</div>
+      <div style="margin-top:14px">&nbsp;&nbsp;Page: <span class="path">~/.answer-me-with-html/pages/TCP-three-way-handshake.html</span></div>
+    </div>
+  </div>
+</div>
+<script>
+  const step = Number(new URLSearchParams(location.search).get('step') || 1);
+  document.querySelectorAll('[data-step]').forEach((el) => {
+    if (Number(el.dataset.step) <= step) el.style.display = 'block';
+  });
+</script>
+</body>
+</html>
