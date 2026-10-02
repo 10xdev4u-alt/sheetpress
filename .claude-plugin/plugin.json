@@ -1,10 +1,18 @@
 {
   "name": "answer-me",
   "description": "复杂问题用一页 HTML 回答：模型只写 Markdown 内容稿，内置 CLI 负责模板、SVG 自动布局和 STE 受控写作检查。",
-  "version": "0.1.0",
-  "author": { "name": "QingYunA" },
+  "version": "0.1.1",
+  "author": {
+    "name": "QingYunA"
+  },
   "homepage": "https://github.com/QingYunA/answer-me",
   "repository": "https://github.com/QingYunA/answer-me",
   "license": "MIT",
-  "keywords": ["html", "diagram", "explainer", "visualization", "ste100"]
+  "keywords": [
+    "html",
+    "diagram",
+    "explainer",
+    "visualization",
+    "ste100"
+  ]
 }

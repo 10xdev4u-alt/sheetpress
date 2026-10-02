@@ -9,14 +9,14 @@
       "name": "answer-me",
       "source": "./",
       "description": "复杂问题用一页 HTML 回答：模型只写 Markdown，内置 CLI 负责出页面。",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "category": "visualization"
     },
     {
       "name": "answer-me-always",
       "source": "./plugins/answer-me-always",
       "description": "可选的高频模式：每轮提醒 Agent 给出结论时附一页 HTML。需要同时安装 answer-me。",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "category": "visualization"
     }
   ]

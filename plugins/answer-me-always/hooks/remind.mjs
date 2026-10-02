@@ -5,7 +5,8 @@
 export const REMINDER = [
   '[answer-me always-on] Whenever this reply states a conclusion, recommendation, summary, plan, comparison,',
   'review or explanation - even a short one - also render a small answer-me page (2-4 panels, use the',
-  'answer-me skill) and end the reply with the page path. Do not skip it because the answer seems short.',
+  'answer-me skill, render with --no-open so no browser window pops up) and end the reply with the page path.',
+  'Do not skip it because the answer seems short.',
   'Skip only for casual chat, a one- or two-sentence reply with no conclusion, pure command output,',
   'or when the user asks for plain text.',
 ].join(' ');

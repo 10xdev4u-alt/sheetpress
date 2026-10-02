@@ -30,3 +30,8 @@ test('always 插件：hooks.json 指向存在的脚本，marketplace 已登记',
 test('SKILL.md 说明了高频模式的提醒标记', () => {
   assert.match(readFileSync(`${ROOT}/skills/answer-me/SKILL.md`, 'utf8'), /\[answer-me always-on\]/);
 });
+
+test('always 插件：提醒要求 --no-open，不弹浏览器', () => {
+  const r = spawnSync(process.execPath, [`${ROOT}/plugins/answer-me-always/hooks/remind.mjs`], { encoding: 'utf8' });
+  assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /--no-open/);
+});
