@@ -17,6 +17,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "build": "node scripts/build.mjs",
     "test": "node --test test/*.test.js",
     "coverage": "node --test --experimental-test-coverage --test-coverage-exclude=\"test/**\" \"test/**/*.test.js\""
   },
@@ -41,5 +42,8 @@
   "homepage": "https://github.com/QingYunA/answer-me#readme",
   "bugs": {
     "url": "https://github.com/QingYunA/answer-me/issues"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
   }
 }

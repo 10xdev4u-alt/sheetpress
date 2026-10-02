@@ -19,12 +19,20 @@ description: 遇到复杂解释时，把回答做成一页可视化 HTML 解释�
 
 ## 2. 工作流（一次 Bash 调用）
 
+CLI 已经打包在本 skill 目录里：`scripts/am.mjs`，单文件、无需安装依赖，只要有 Node.js 20+。下文的 `am` 都指：
+
+```bash
+node "<本 skill 目录>/scripts/am.mjs"
+```
+
+`<本 skill 目录>` 是这个 SKILL.md 所在的目录（加载 skill 时会给出绝对路径）。如果用户已经全局安装了 `am` 命令，也可以直接用 `am`。
+
 1. 先在心里列出 3～8 个面板。每个面板只回答一个子问题。
 2. 按信息形状选组件（见第 4 节）。
 3. 用 heredoc 一次性渲染：
 
-```bash
-am render - <<'AM_EOF'
+````bash
+node "<本 skill 目录>/scripts/am.mjs" render - <<'AM_EOF'
 ---
 title: 标题
 ---
@@ -33,15 +41,13 @@ title: 标题
 A -> B: 标签
 ```
 AM_EOF
-```
+````
 
 4. 读输出：
    - `✓ <路径>`：成功。页面已在浏览器打开。
    - `✗ L<行号> [组件] …` + 正确示例：照示例改那一行，再渲染一次。
    - `STE n 条警告`：按建议改写对应行，再渲染一次。最多重试 2 轮，仍有警告就保留页面并说明。
 5. 在终端只回 2～3 行：一句核心结论 + 页面路径。不要把稿件或 HTML 贴回终端。
-
-`am` 不在 PATH 时，改用 `node "$(cd -P <本 skill 目录> && pwd)/../../bin/am.js"`（skill 目录通常是仓库内 `skills/answer-me` 的软链，`cd -P` 先解析到真实路径）。
 
 ## 3. 稿件格式速查
 

@@ -2,6 +2,7 @@
 
 import { parseArgs } from 'node:util';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { VERSION } from './assets.js';
 import { homedir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { spawn } from 'node:child_process';
@@ -11,10 +12,9 @@ import { lintDoc, formatWarning } from './lint/ste.js';
 import { COMPONENTS } from './components/index.js';
 import { THEMES } from './themes/index.js';
 
-const PKG = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const MAX_LISTED_WARNINGS = 20;
 
-const USAGE = `answer-me ${PKG.version} — 把 Markdown 内容稿渲染成单文件 HTML 解释页
+const USAGE = `answer-me ${VERSION} — 把 Markdown 内容稿渲染成单文件 HTML 解释页
 
 用法:
   am render <file|->  [-o 输出路径] [--no-open] [--theme blueprint|shadcn]
@@ -84,7 +84,7 @@ export async function main(argv, io = {}) {
   }
   const { values: opts, positionals: [cmd, arg] } = parsed;
 
-  if (opts.version) return print(PKG.version), 0;
+  if (opts.version) return print(VERSION), 0;
   if (opts.help || !cmd) return print(USAGE), 0;
 
   switch (cmd) {

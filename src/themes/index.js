@@ -1,7 +1,7 @@
 // 主题 = 一组 CSS 变量。组件样式（base.css）只引用变量，因此切换主题只需切换 data-theme。
 // 每个主题提供 light / dark 两套取值；auto 模式跟随系统 prefers-color-scheme。
 
-import { readFileSync } from 'node:fs';
+import { BASE_CSS } from '../assets.js';
 
 const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial, sans-serif';
 const MONO = 'ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace';
@@ -62,6 +62,5 @@ export function themeCss() {
 }
 
 export function pageCss() {
-  const base = readFileSync(new URL('./base.css', import.meta.url), 'utf8');
-  return `${themeCss()}\n\n${base}`;
+  return `${themeCss()}\n\n${BASE_CSS}`;
 }
