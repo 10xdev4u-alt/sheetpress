@@ -21,7 +21,7 @@ async function run(args, { stdin = '', env = {} } = {}) {
   const err = sink();
   const code = await main(args, {
     stdout: out.stream, stderr: err.stream, stdin: Readable.from([stdin]),
-    env: { AM_NO_OPEN: '1', ANSWER_ME_HOME: dir, ...env }, cwd: dir,
+    env: { AM_NO_OPEN: '1', AM_HOME: dir, ...env }, cwd: dir,
   });
   return { code, out: out.text, err: err.text };
 }
@@ -33,7 +33,7 @@ test('cli: --version 与 --help', async () => {
   assert.match((await run([])).out, /用法/);
 });
 
-test('cli render: 从 stdin 读取，写入 ANSWER_ME_HOME/pages，打印路径与统计', async () => {
+test('cli render: 从 stdin 读取，写入 AM_HOME/pages，打印路径与统计', async () => {
   const r = await run(['render', '-'], { stdin: GOOD });
   assert.equal(r.code, 0, r.err);
   const file = r.out.match(/✓ (.+\.html)/)[1];

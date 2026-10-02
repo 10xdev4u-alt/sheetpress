@@ -1,9 +1,9 @@
 ---
-name: answer-me
+name: answer-me-with-html
 description: 遇到复杂解释时，把回答做成一页可视化 HTML 解释页：模型只写扩展 Markdown 内容稿，skill 自带的 CLI 负责模板、组件、SVG 自动布局和 STE 受控写作检查，一次调用出单文件页面并自动打开。当回答涉及以下任一情况时主动使用，不必等用户要求：≥3 个相互关联的概念；带分支或多参与者的流程 / 协议 / 架构；≥3 个维度的对比或取舍；层级结构（目录、模块、分类体系）；演进历史或阶段；用户说"讲讲原理 / 没看懂 / 画个图 / 解释一下这个代码库 / 用 HTML 讲 / explain visually"。不要用于：短问答（<200 字能说清）、要立即复制执行的命令、纯代码修改、用户明确要求纯文本时。
 ---
 
-# answer-me：用一页 HTML 回答复杂问题
+# Answer me with HTML：用一页 HTML 回答复杂问题
 
 你只写**内容稿**（扩展 Markdown）。排版、配色、暗黑模式、图形坐标全部由 `am` CLI 完成。**不要手写 HTML / CSS / SVG。**
 
@@ -19,7 +19,7 @@ description: 遇到复杂解释时，把回答做成一页可视化 HTML 解释�
 
 ### 高频模式
 
-如果上下文里出现 `[answer-me always-on]` 提醒（用户装了 answer-me-always 插件，或在规则文件里开启了高频模式），门槛放低：
+如果上下文里出现 `[answer-me-with-html always-on]` 提醒（用户装了 answer-me-with-html-always 插件，或在规则文件里开启了高频模式），门槛放低：
 
 - 只要这一轮给出了结论、总结、方案、对比、评审或讲解，就附一页。
 - 不要因为"答案不长"就跳过。有结论就出页。

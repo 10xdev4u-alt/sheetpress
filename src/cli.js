@@ -14,7 +14,7 @@ import { THEMES } from './themes/index.js';
 
 const MAX_LISTED_WARNINGS = 20;
 
-const USAGE = `answer-me ${VERSION} — 把 Markdown 内容稿渲染成单文件 HTML 解释页
+const USAGE = `Answer me with HTML ${VERSION} — 把 Markdown 内容稿渲染成单文件 HTML 解释页
 
 用法:
   am render <file|->  [-o 输出路径] [--no-open] [--theme blueprint|shadcn]
@@ -24,7 +24,7 @@ const USAGE = `answer-me ${VERSION} — 把 Markdown 内容稿渲染成单文件
   am help [组件名|format]                          查看组件语法 / 稿件格式
 
 - 文件参数写 - 表示从 stdin 读取（适合 heredoc：am render - <<'EOF' ... EOF）。
-- 默认输出到 ~/.answer-me/pages/（可用环境变量 ANSWER_ME_HOME 修改），并自动打开浏览器。`;
+- 默认输出到 ~/.answer-me-with-html/pages/（可用环境变量 AM_HOME 修改），并自动打开浏览器。`;
 
 const FORMAT = `稿件格式（扩展 Markdown）
 
@@ -132,7 +132,7 @@ function cmdRender(src, opts, { print, fail, env, cwd }) {
   }
   const file = opts.out
     ? resolve(cwd ?? process.cwd(), opts.out)
-    : join(env.ANSWER_ME_HOME || join(homedir(), '.answer-me'), 'pages', `${slug(result.meta.title)}-${stamp()}.html`);
+    : join(env.AM_HOME || join(homedir(), '.answer-me-with-html'), 'pages', `${slug(result.meta.title)}-${stamp()}.html`);
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, result.html);
 

@@ -13,8 +13,8 @@ const PKG = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
 test('bundle: skill 目录单独复制出去后仍能渲染', () => {
   const dir = mkdtempSync(join(tmpdir(), 'am-bundle-'));
   try {
-    cpSync(join(ROOT, 'skills/answer-me'), join(dir, 'answer-me'), { recursive: true });
-    const cli = join(dir, 'answer-me/scripts/am.mjs');
+    cpSync(join(ROOT, 'skills/answer-me-with-html'), join(dir, 'answer-me-with-html'), { recursive: true });
+    const cli = join(dir, 'answer-me-with-html/scripts/am.mjs');
     const env = { ...process.env, AM_NO_OPEN: '1' };
 
     const version = spawnSync(process.execPath, [cli, '--version'], { encoding: 'utf8', env });

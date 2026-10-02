@@ -1,7 +1,7 @@
 ---
 template: doc
 theme: shadcn
-title: answer-me 是怎么工作的
+title: Answer me with HTML 是怎么工作的
 subtitle: 模型只写内容稿，CLI 负责排版、画图和检查
 ---
 
@@ -31,7 +31,7 @@ group render.js: parse, STE lint, 组件渲染, dagre 布局, 模板与插槽
 
 ## C 目录结构
 ```tree list
-answer-me
+answer-me-with-html
   `bin/am.js` | CLI 入口
   `src/`
     `parse.js` | 稿件 → 面板与块
@@ -39,7 +39,7 @@ answer-me
     `components/` | 8 个组件
     `lint/` | STE 受控写作检查
     `themes/` | blueprint 与 shadcn 两套主题
-  `skills/answer-me/` | Agent Skill
+  `skills/answer-me-with-html/` | Agent Skill
 ```
 
 ## D 出错时怎么办

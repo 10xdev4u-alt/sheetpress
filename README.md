@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/logo.svg" width="64" height="64" alt="answer-me logo">
+  <img src="docs/logo.svg" width="64" height="64" alt="Answer me with HTML logo">
 </p>
 
-<h1 align="center">answer-me</h1>
+<h1 align="center">Answer me with HTML</h1>
 
 <p align="center">
   <b>一个 Agent Skill：遇到复杂问题，Agent 不再甩给你一堵文字墙，而是给你一页能看懂的 HTML。</b>
@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
-  <a href="https://github.com/QingYunA/answer-me/actions/workflows/ci.yml"><img src="https://github.com/QingYunA/answer-me/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/QingYunA/answer-me-with-html/actions/workflows/ci.yml"><img src="https://github.com/QingYunA/answer-me-with-html/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Cursor%20%C2%B7%20OpenCode-black" alt="Works with Claude Code, Codex, Cursor, OpenCode">
 </p>
 
@@ -25,7 +25,7 @@
 Agent 会写一份很短的 Markdown 稿件，交给 skill 自带的 CLI，几十毫秒后浏览器里打开这样一页：
 
 <p align="center">
-  <img src="docs/images/ste100.png" alt="answer-me 生成的 STE100 信息板" width="100%">
+  <img src="docs/images/ste100.png" alt="Answer me with HTML 生成的 STE100 信息板" width="100%">
 </p>
 
 <p align="center"><sub>由 <a href="examples/ste100.md">examples/ste100.md</a> 生成，复刻了 Karpathy 推文里的 STE100 信息板。</sub></p>
@@ -38,21 +38,21 @@ Agent 会写一份很短的 Markdown 稿件，交给 skill 自带的 CLI，几�
 
 把下面这段话粘贴给你的 Agent。Claude Code、Codex、Cursor、OpenCode 都可以：
 
-> 帮我安装 answer-me 这个 skill：运行 `npx -y skills add QingYunA/answer-me -g -y`，用 `-a` 参数指定你自己这个 Agent（比如 Claude Code 是 `-a claude-code`）。装好后读一遍它的 SKILL.md，然后用它生成一页"TCP 三次握手"的解释页，确认浏览器能正常打开。
+> 帮我安装 Answer me with HTML 这个 skill：运行 `npx -y skills add QingYunA/answer-me-with-html -g -y`，用 `-a` 参数指定你自己这个 Agent（比如 Claude Code 是 `-a claude-code`）。装好后读一遍它的 SKILL.md，然后用它生成一页"TCP 三次握手"的解释页，确认浏览器能正常打开。
 
 ### Claude Code 插件
 
 在 Claude Code 里执行：
 
 ```
-/plugin marketplace add QingYunA/answer-me
-/plugin install answer-me@answer-me
+/plugin marketplace add QingYunA/answer-me-with-html
+/plugin install answer-me-with-html@answer-me-with-html
 ```
 
 ### 一条命令
 
 ```bash
-npx skills add QingYunA/answer-me
+npx skills add QingYunA/answer-me-with-html
 ```
 
 它会问你装到哪个 Agent，支持 70 多种。安装器来自 [vercel-labs/skills](https://github.com/vercel-labs/skills)。
@@ -60,11 +60,11 @@ npx skills add QingYunA/answer-me
 <details>
 <summary>手动安装</summary>
 
-把 `skills/answer-me` 这个目录放进你的 Agent 的 skill 目录就行。以 Claude Code 为例：
+把 `skills/answer-me-with-html` 这个目录放进你的 Agent 的 skill 目录就行。以 Claude Code 为例：
 
 ```bash
-git clone --depth 1 https://github.com/QingYunA/answer-me.git /tmp/answer-me
-cp -R /tmp/answer-me/skills/answer-me ~/.claude/skills/answer-me
+git clone --depth 1 https://github.com/QingYunA/answer-me-with-html.git /tmp/answer-me-with-html
+cp -R /tmp/answer-me-with-html/skills/answer-me-with-html ~/.claude/skills/answer-me-with-html
 ```
 
 其他 Agent 的 skill 目录：Codex 是 `~/.codex/skills/`，Cursor 是 `~/.cursor/skills/`，OpenCode 是 `~/.config/opencode/skill/`。
@@ -84,9 +84,9 @@ cp -R /tmp/answer-me/skills/answer-me ~/.claude/skills/answer-me
 | "Kubernetes 是怎么发展起来的" | 时间线，关键节点高亮 |
 | "`ls -la` 怎么看隐藏文件" | 不出页面。一句话能说清的问题照常回答 |
 
-要不要出页面由 Agent 判断：概念之间关系复杂、有多步流程、要做多维对比，才会出页面。你也可以直接说"用 answer-me 讲一下……"。
+要不要出页面由 Agent 判断：概念之间关系复杂、有多步流程、要做多维对比，才会出页面。你也可以直接说"用 HTML 讲一下……"。
 
-页面会保存在 `~/.answer-me/pages/`，默认生成后自动用浏览器打开。嫌弹窗打扰，可以设置环境变量 `AM_NO_OPEN=1`，之后只生成不打开（Claude Code 用户写进 `~/.claude/settings.json` 的 `env` 里）。页面右上角可以切换主题、切换亮暗，也可以复制生成这一页的 Markdown 原稿。
+页面会保存在 `~/.answer-me-with-html/pages/`，默认生成后自动用浏览器打开。嫌弹窗打扰，可以设置环境变量 `AM_NO_OPEN=1`，之后只生成不打开（Claude Code 用户写进 `~/.claude/settings.json` 的 `env` 里）。页面右上角可以切换主题、切换亮暗，也可以复制生成这一页的 Markdown 原稿。
 
 ## 高频模式（可选）
 
@@ -97,15 +97,15 @@ cp -R /tmp/answer-me/skills/answer-me ~/.claude/skills/answer-me
 **Claude Code：** 再装一个插件就行。
 
 ```
-/plugin marketplace add QingYunA/answer-me
-/plugin install answer-me-always@answer-me
+/plugin marketplace add QingYunA/answer-me-with-html
+/plugin install answer-me-with-html-always@answer-me-with-html
 ```
 
-不想要了，执行 `/plugin uninstall answer-me-always@answer-me` 关掉。
+不想要了，执行 `/plugin uninstall answer-me-with-html-always@answer-me-with-html` 关掉。
 
 **其他 Agent：** 把下面这段话粘贴给你的 Agent，让它写进自己的规则文件（比如 `AGENTS.md`）：
 
-> 帮我打开 answer-me 的高频模式：在你的全局规则文件里加一条规则——"[answer-me always-on] 只要回复里给出了结论、总结、方案、对比、评审或讲解，就同时用 answer-me skill 生成一页 HTML（日常结论用 2～4 个面板），并在回复最后附上页面路径。哪怕回答很短也要出，不要因为答案不长就跳过。渲染时加 --no-open，不要弹出浏览器。闲聊、没有结论的一两句话、纯命令输出、我要求纯文本时除外。"
+> 帮我打开 Answer me with HTML 的高频模式：在你的全局规则文件里加一条规则——"[answer-me-with-html always-on] 只要回复里给出了结论、总结、方案、对比、评审或讲解，就同时用 answer-me-with-html skill 生成一页 HTML（日常结论用 2～4 个面板），并在回复最后附上页面路径。哪怕回答很短也要出，不要因为答案不长就跳过。渲染时加 --no-open，不要弹出浏览器。闲聊、没有结论的一两句话、纯命令输出、我要求纯文本时除外。"
 
 ## 为什么做这个
 
@@ -115,7 +115,7 @@ Karpathy 发过[一条推文](https://x.com/karpathy/status/2105819303471976479)
 
 一页像样的网页要等一两分钟。大半时间花在输出几百行 CSS 上，而这些 CSS 每次都差不多。画流程图更麻烦：模型得自己算 SVG 坐标，连线经常歪掉，箭头指到空白处。
 
-所以 answer-me 把这些活从模型手里拿走了。模型只写内容，排版、配色、画图都交给 CLI。
+所以 Answer me with HTML 把这些活从模型手里拿走了。模型只写内容，排版、配色、画图都交给 CLI。
 
 ## 它是怎么变快的
 
@@ -220,7 +220,7 @@ A -> B: 标签
 - `span=2` 让面板占两列，`rows=2` 让面板占两行，`bare` 会去掉面板的标题栏。
 - 组件覆盖不到的情况，可以用 ```` ```html ```` 或 ```` ```svg ```` 直接嵌入原始代码。
 
-每个组件的完整写法：`node skills/answer-me/scripts/am.mjs help <组件名>`。
+每个组件的完整写法：`node skills/answer-me-with-html/scripts/am.mjs help <组件名>`。
 
 </details>
 
@@ -230,7 +230,7 @@ A -> B: 标签
 CLI 就是 skill 目录里的 `scripts/am.mjs`：
 
 ````bash
-AM=skills/answer-me/scripts/am.mjs
+AM=skills/answer-me-with-html/scripts/am.mjs
 
 node $AM render examples/tcp.md                  # 渲染并用浏览器打开
 node $AM render notes.md -o out.html --no-open   # 指定输出位置，不自动打开
@@ -247,7 +247,7 @@ A -> B: 你好
 AM_EOF
 ````
 
-页面默认保存在 `~/.answer-me/pages/`。环境变量 `ANSWER_ME_HOME` 可以改位置，`AM_NO_OPEN=1` 可以关掉自动打开浏览器。
+页面默认保存在 `~/.answer-me-with-html/pages/`。环境变量 `AM_HOME` 可以改位置，`AM_NO_OPEN=1` 可以关掉自动打开浏览器。
 
 </details>
 
@@ -255,7 +255,7 @@ AM_EOF
 
 [ASD-STE100](https://www.asd-ste100.org/) 是一套受控英语，最早用来写飞机维修手册。它的规定很具体：句子不能太长，一个词只表达一个意思，操作步骤要用祈使句。Karpathy 提到，让 LLM 按这套规则写，读起来会清楚很多。
 
-answer-me 把其中容易用机器检查的部分做成了中英双语版，每次渲染时顺带检查：
+Answer me with HTML 把其中容易用机器检查的部分做成了中英双语版，每次渲染时顺带检查：
 
 - **句长:** 操作步骤不超过 20 个英文词或 35 个汉字，描述性句子不超过 25 词或 45 字。每段最多 6 句。
 - **用词:** 英文换成常见词，比如 utilize 改成 use、prior to 改成 before。中文删掉虚动词，比如"进行优化"直接写"优化"。
@@ -266,10 +266,10 @@ answer-me 把其中容易用机器检查的部分做成了中英双语版，每�
 ## 开发
 
 ```bash
-git clone https://github.com/QingYunA/answer-me.git && cd answer-me
+git clone https://github.com/QingYunA/answer-me-with-html.git && cd answer-me-with-html
 npm install
 npm test          # 跑测试
-npm run build     # 改了 src/ 之后，重新打包 skills/answer-me/scripts/am.mjs
+npm run build     # 改了 src/ 之后，重新打包 skills/answer-me-with-html/scripts/am.mjs
 ```
 
 运行时依赖只有两个：[marked](https://github.com/markedjs/marked) 负责解析 Markdown，[@dagrejs/dagre](https://github.com/dagrejs/dagre) 负责流程图布局。打包时它们会被一起打进 `am.mjs`。

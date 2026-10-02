@@ -1,0 +1,11 @@
+{
+  "name": "answer-me-with-html-always",
+  "description": "answer-me-with-html 高频模式：每轮提醒 Agent，给出结论、总结、方案或对比时都附一页 HTML。需要同时安装 answer-me-with-html。",
+  "version": "0.2.0",
+  "author": {
+    "name": "QingYunA"
+  },
+  "homepage": "https://github.com/QingYunA/answer-me-with-html",
+  "repository": "https://github.com/QingYunA/answer-me-with-html",
+  "license": "MIT"
+}

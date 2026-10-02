@@ -1,12 +1,12 @@
 {
-  "name": "answer-me",
+  "name": "answer-me-with-html",
   "description": "复杂问题用一页 HTML 回答：模型只写 Markdown 内容稿，内置 CLI 负责模板、SVG 自动布局和 STE 受控写作检查。",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "author": {
     "name": "QingYunA"
   },
-  "homepage": "https://github.com/QingYunA/answer-me",
-  "repository": "https://github.com/QingYunA/answer-me",
+  "homepage": "https://github.com/QingYunA/answer-me-with-html",
+  "repository": "https://github.com/QingYunA/answer-me-with-html",
   "license": "MIT",
   "keywords": [
     "html",
