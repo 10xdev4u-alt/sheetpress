@@ -1,0 +1,45 @@
+{
+  "name": "answer-me",
+  "version": "0.1.0",
+  "description": "LLM 写 Markdown 内容稿，CLI 秒出零依赖单文件 HTML 解释页（模板 + slot + SVG 自动布局 + STE 受控写作检查）",
+  "type": "module",
+  "bin": {
+    "am": "bin/am.js",
+    "answer-me": "bin/am.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "skills",
+    "examples"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-exclude=\"test/**\" \"test/**/*.test.js\""
+  },
+  "keywords": [
+    "llm",
+    "agent",
+    "skill",
+    "html",
+    "explainer",
+    "diagram",
+    "ste100"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@dagrejs/dagre": "^3.1.1",
+    "marked": "^18.0.14"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QingYunA/answer-me.git"
+  },
+  "homepage": "https://github.com/QingYunA/answer-me#readme",
+  "bugs": {
+    "url": "https://github.com/QingYunA/answer-me/issues"
+  }
+}
