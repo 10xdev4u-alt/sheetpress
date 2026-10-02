@@ -32,17 +32,18 @@ const ATTR_BLOCK = /\s*\{([^{}]*)\}\s*$/;
 const PANEL_ID = /^([A-Z][0-9]?)\s+(.+)$/;
 const ATTR_TOKEN = /([\w-]+)(?:=("[^"]*"|'[^']*'|\S+))?/g;
 
-export function parseDoc(source) {
+// defaults：用户配置提供的默认值（如 theme / mode / style），稿件 frontmatter 显式写的值优先。
+export function parseDoc(source, { defaults = {} } = {}) {
   const lines = String(source).replace(/\r\n?/g, '\n').split('\n');
-  const { meta, bodyStart } = parseFrontmatter(lines);
+  const { meta, bodyStart } = parseFrontmatter(lines, { ...DEFAULT_META, ...defaults });
   const sections = splitSections(lines, bodyStart);
   const intro = extractTitle(sections.intro, meta);
   const panels = assignIds(sections.panels);
   return { meta, intro, panels };
 }
 
-function parseFrontmatter(lines) {
-  if (lines[0]?.trim() !== '---') return { meta: { ...DEFAULT_META }, bodyStart: 0 };
+function parseFrontmatter(lines, base) {
+  if (lines[0]?.trim() !== '---') return { meta: { ...base }, bodyStart: 0 };
   const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
   if (end === -1) throw new ParseError('frontmatter 未闭合：缺少结束行 ---', 1);
 
@@ -55,7 +56,7 @@ function parseFrontmatter(lines) {
     entries[m[1]] = { value: coerce(m[1], unquote(m[2])), line: i + 1 };
   }
 
-  const meta = { ...DEFAULT_META };
+  const meta = { ...base };
   for (const [key, { value, line }] of Object.entries(entries)) {
     if (CHOICES[key] && !CHOICES[key].includes(String(value))) {
       throw new ParseError(`${key} 的值 "${value}" 无效，可选：${CHOICES[key].join(' | ')}`, line);

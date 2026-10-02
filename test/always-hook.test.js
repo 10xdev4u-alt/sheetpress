@@ -35,3 +35,23 @@ test('always 插件：提醒要求 --no-open，不弹浏览器', () => {
   const r = spawnSync(process.execPath, [`${ROOT}/plugins/answer-me-with-html-always/hooks/remind.mjs`], { encoding: 'utf8' });
   assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /--no-open/);
 });
+
+test('always 插件：配置 always=off 时不注入提醒；配置损坏时照常注入', async () => {
+  const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const home = mkdtempSync(`${tmpdir()}/am-always-`);
+  const run = () => spawnSync(process.execPath, [`${ROOT}/plugins/answer-me-with-html-always/hooks/remind.mjs`], {
+    encoding: 'utf8', env: { ...process.env, AM_HOME: home },
+  });
+  try {
+    assert.match(run().stdout, /always-on/, '无配置文件时默认开启');
+    writeFileSync(`${home}/config.json`, JSON.stringify({ always: false }));
+    const off = run();
+    assert.equal(off.status, 0);
+    assert.equal(off.stdout, '');
+    writeFileSync(`${home}/config.json`, '{ broken');
+    assert.match(run().stdout, /always-on/);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});

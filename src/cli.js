@@ -3,7 +3,6 @@
 import { parseArgs } from 'node:util';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { VERSION } from './assets.js';
-import { homedir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { spawn } from 'node:child_process';
 import { renderDoc, RenderError, LintError } from './render.js';
@@ -11,6 +10,7 @@ import { parseDoc, ParseError, CHOICES } from './parse.js';
 import { lintDoc, formatWarning } from './lint/ste.js';
 import { COMPONENTS } from './components/index.js';
 import { THEMES } from './themes/index.js';
+import { amHome, readConfig, setConfig, resetConfig, CONFIG_KEYS, ConfigError } from './config.js';
 
 const MAX_LISTED_WARNINGS = 20;
 
@@ -20,11 +20,13 @@ const USAGE = `Answer me with HTML ${VERSION} — 把 Markdown 内容稿渲染�
   am render <file|->  [-o 输出路径] [--no-open] [--theme blueprint|shadcn]
                       [--template sheet|doc] [--style off|80|strict] [--mode auto|light|dark]
   am lint   <file|->  [--style off|80|strict]     只做 STE 受控写作检查
+  am config [set <键> <值> | get <键> | reset [键]] 查看或修改配置
   am list                                         列出模板、主题、组件
   am help [组件名|format]                          查看组件语法 / 稿件格式
 
 - 文件参数写 - 表示从 stdin 读取（适合 heredoc：am render - <<'EOF' ... EOF）。
-- 默认输出到 ~/.answer-me-with-html/pages/（可用环境变量 AM_HOME 修改），并自动打开浏览器。`;
+- 默认输出到 ~/.answer-me-with-html/pages/（可用环境变量 AM_HOME 修改）。
+- 是否自动打开浏览器、默认主题等用 am config 设置；--open / --no-open 只影响这一次。`;
 
 const FORMAT = `稿件格式（扩展 Markdown）
 
@@ -70,6 +72,7 @@ export async function main(argv, io = {}) {
       options: {
         out: { type: 'string', short: 'o' },
         'no-open': { type: 'boolean' },
+        open: { type: 'boolean' },
         theme: { type: 'string' },
         template: { type: 'string' },
         style: { type: 'string' },
@@ -82,7 +85,7 @@ export async function main(argv, io = {}) {
     fail(`✗ ${e.message}\n\n${USAGE}`);
     return 2;
   }
-  const { values: opts, positionals: [cmd, arg] } = parsed;
+  const { values: opts, positionals: [cmd, arg, ...rest] } = parsed;
 
   if (opts.version) return print(VERSION), 0;
   if (opts.help || !cmd) return print(USAGE), 0;
@@ -90,6 +93,7 @@ export async function main(argv, io = {}) {
   switch (cmd) {
     case 'render': return withSource(arg, io, fail, (src) => cmdRender(src, opts, { print, fail, env, cwd: io.cwd }));
     case 'lint': return withSource(arg, io, fail, (src) => cmdLint(src, opts, { print, fail }));
+    case 'config': return cmdConfig([arg, ...rest].filter((x) => x !== undefined), { print, fail, env });
     case 'list': return cmdList(print), 0;
     case 'help': return cmdHelp(arg, { print, fail });
     default:
@@ -123,16 +127,28 @@ async function readStream(stream) {
   return Buffer.concat(chunks).toString('utf8');
 }
 
+// 是否自动打开：--open 强制打开 > --no-open > AM_NO_OPEN（非 0）> CI 环境 > 配置 open。
+export function shouldOpen(opts, env, config) {
+  if (opts.open) return true;
+  if (opts['no-open']) return false;
+  if (env.AM_NO_OPEN && env.AM_NO_OPEN !== '0') return false;
+  if (env.CI) return false;
+  return config.open !== false;
+}
+
 function cmdRender(src, opts, { print, fail, env, cwd }) {
+  const config = readConfig(env);
+  if (config.warning) fail(`! ${config.warning}`);
+  const { theme, mode, style } = config.values;
   let result;
   try {
-    result = renderDoc(src, { theme: opts.theme, template: opts.template, style: opts.style, mode: opts.mode });
+    result = renderDoc(src, { theme: opts.theme, template: opts.template, style: opts.style, mode: opts.mode }, { theme, mode, style });
   } catch (e) {
     return reportError(e, fail);
   }
   const file = opts.out
     ? resolve(cwd ?? process.cwd(), opts.out)
-    : join(env.AM_HOME || join(homedir(), '.answer-me-with-html'), 'pages', `${slug(result.meta.title)}-${stamp()}.html`);
+    : join(amHome(env), 'pages', `${slug(result.meta.title)}-${stamp()}.html`);
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, result.html);
 
@@ -140,7 +156,7 @@ function cmdRender(src, opts, { print, fail, env, cwd }) {
   print(`✓ ${file}`);
   print(`  ${result.meta.template} · ${result.meta.theme} · ${result.stats.panels} 面板${comps ? ` · ${comps}` : ''}`);
   printWarnings(result.warnings, print, result.meta.style);
-  if (!opts['no-open'] && !env.AM_NO_OPEN && !env.CI) openFile(file);
+  if (shouldOpen(opts, env, config.values)) openFile(file);
   return 0;
 }
 
@@ -186,6 +202,45 @@ function reportError(e, fail) {
     return 1;
   }
   throw e;
+}
+
+const showValue = (v) => (typeof v === 'boolean' ? (v ? 'on' : 'off') : String(v));
+
+function cmdConfig(args, { print, fail, env }) {
+  const [action, key, value] = args;
+  try {
+    if (action === 'set') {
+      if (key === undefined || value === undefined) throw new ConfigError('用法：am config set <键> <值>');
+      print(`✓ ${key} = ${showValue(setConfig(key, value, env))}`);
+      return 0;
+    }
+    if (action === 'get') {
+      if (!CONFIG_KEYS[key]) throw new ConfigError(`没有配置项 "${key}"。可用：${Object.keys(CONFIG_KEYS).join(' | ')}`);
+      print(showValue(readConfig(env).values[key]));
+      return 0;
+    }
+    if (action === 'reset') {
+      resetConfig(key, env);
+      print(key ? `✓ ${key} 已恢复默认` : '✓ 全部配置已恢复默认');
+      return 0;
+    }
+    if (action !== undefined) throw new ConfigError(`未知操作 "${action}"。用法：am config [set <键> <值> | get <键> | reset [键]]`);
+  } catch (e) {
+    if (!(e instanceof ConfigError)) throw e;
+    fail(`✗ ${e.message}`);
+    return 2;
+  }
+  const { values, stored, warning, path } = readConfig(env);
+  if (warning) fail(`! ${warning}`);
+  print(`配置文件：${path}`);
+  for (const [k, spec] of Object.entries(CONFIG_KEYS)) {
+    const mark = k in stored ? '*' : ' ';
+    const options = spec.type === 'bool' ? 'on | off' : spec.choices.join(' | ');
+    print(`${mark} ${k.padEnd(7)}${showValue(values[k]).padEnd(10)}${spec.label}（${options}）`);
+  }
+  if (env.AM_NO_OPEN && env.AM_NO_OPEN !== '0') print('注意：环境变量 AM_NO_OPEN 生效中，会覆盖 open 配置。');
+  print('* 表示你改过的值。修改：am config set <键> <值>；恢复默认：am config reset [键]');
+  return 0;
 }
 
 function cmdList(print) {

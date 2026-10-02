@@ -1,11 +1,23 @@
 ---
 name: answer-me-with-html
-description: 遇到复杂解释时，把回答做成一页可视化 HTML 解释页：模型只写扩展 Markdown 内容稿，skill 自带的 CLI 负责模板、组件、SVG 自动布局和 STE 受控写作检查，一次调用出单文件页面并自动打开。当回答涉及以下任一情况时主动使用，不必等用户要求：≥3 个相互关联的概念；带分支或多参与者的流程 / 协议 / 架构；≥3 个维度的对比或取舍；层级结构（目录、模块、分类体系）；演进历史或阶段；用户说"讲讲原理 / 没看懂 / 画个图 / 解释一下这个代码库 / 用 HTML 讲 / explain visually"。不要用于：短问答（<200 字能说清）、要立即复制执行的命令、纯代码修改、用户明确要求纯文本时。
+description: 遇到复杂解释时，把回答做成一页可视化 HTML 解释页：模型只写扩展 Markdown 内容稿，skill 自带的 CLI 负责模板、组件、SVG 自动布局和 STE 受控写作检查，一次调用出单文件页面。用户说 `/answer-me-with-html config` 或想改设置（自动打开浏览器、高频模式、默认主题）时也用本 skill。当回答涉及以下任一情况时主动使用，不必等用户要求：≥3 个相互关联的概念；带分支或多参与者的流程 / 协议 / 架构；≥3 个维度的对比或取舍；层级结构（目录、模块、分类体系）；演进历史或阶段；用户说"讲讲原理 / 没看懂 / 画个图 / 解释一下这个代码库 / 用 HTML 讲 / explain visually"。不要用于：短问答（<200 字能说清）、要立即复制执行的命令、纯代码修改、用户明确要求纯文本时。
 ---
 
 # Answer me with HTML：用一页 HTML 回答复杂问题
 
 你只写**内容稿**（扩展 Markdown）。排版、配色、暗黑模式、图形坐标全部由 `am` CLI 完成。**不要手写 HTML / CSS / SVG。**
+
+## 0. 用户要改配置时
+
+本次调用参数：`$ARGUMENTS`
+
+参数以 `config` 开头时（如 `/answer-me-with-html config open off`），这一轮只处理配置，不出页面：
+
+- `config`：运行 `am config` 显示当前配置，然后问用户想改哪一项。
+- `config <键> <值>`：运行 `am config set <键> <值>`。
+- `config reset [键]`：运行 `am config reset [键]`。
+
+用户用自然语言提出时（"别再自动弹浏览器了""关掉高频模式""默认用卡片主题"），同样换算成 `am config set`。可配置项：`open`（自动打开浏览器）、`always`（高频模式）、`theme`、`mode`、`style`，运行 `am config` 可看全部说明。
 
 ## 1. 判断：要不要出页面
 
@@ -33,17 +45,17 @@ description: 遇到复杂解释时，把回答做成一页可视化 HTML 解释�
 CLI 已经打包在本 skill 目录里：`scripts/am.mjs`，单文件、无需安装依赖，只要有 Node.js 20+。下文的 `am` 都指：
 
 ```bash
-node "<本 skill 目录>/scripts/am.mjs"
+node "${CLAUDE_SKILL_DIR}/scripts/am.mjs"
 ```
 
-`<本 skill 目录>` 是这个 SKILL.md 所在的目录（加载 skill 时会给出绝对路径）。如果用户已经全局安装了 `am` 命令，也可以直接用 `am`。
+在 Claude Code 里，上面的路径会自动替换成本 skill 的目录。如果你看到的是没有替换的变量（其他 Agent），请换成这个 SKILL.md 所在目录的绝对路径。用户全局安装了 `am` 命令时，也可以直接用 `am`。
 
 1. 先在心里列出 3～8 个面板。每个面板只回答一个子问题。
 2. 按信息形状选组件（见第 4 节）。
 3. 用 heredoc 一次性渲染：
 
 ````bash
-node "<本 skill 目录>/scripts/am.mjs" render - <<'AM_EOF'
+node "${CLAUDE_SKILL_DIR}/scripts/am.mjs" render - <<'AM_EOF'
 ---
 title: 标题
 ---
@@ -55,7 +67,7 @@ AM_EOF
 ````
 
 4. 读输出：
-   - `✓ <路径>`：成功。默认会自动用浏览器打开；加 `--no-open` 或设置环境变量 `AM_NO_OPEN=1` 则只生成不打开。
+   - `✓ <路径>`：成功。是否自动打开浏览器由用户配置决定（`am config`）；加 `--no-open` 只影响这一次。
    - `✗ L<行号> [组件] …` + 正确示例：照示例改那一行，再渲染一次。
    - `STE n 条警告`：按建议改写对应行，再渲染一次。最多重试 2 轮，仍有警告就保留页面并说明。
 5. 在终端只回 2～3 行：一句核心结论 + 页面路径。不要把稿件或 HTML 贴回终端。

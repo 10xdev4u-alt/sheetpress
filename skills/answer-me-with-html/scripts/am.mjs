@@ -3,7 +3,7 @@
 
 // src/cli.js
 import { parseArgs } from "node:util";
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync as readFileSync2, writeFileSync as writeFileSync2, mkdirSync as mkdirSync2 } from "node:fs";
 
 // src/assets.js
 var VERSION = "0.2.0";
@@ -48,8 +48,7 @@ var RUNTIME_JS = `(() => {
 `;
 
 // src/cli.js
-import { homedir } from "node:os";
-import { join, resolve, dirname } from "node:path";
+import { join as join2, resolve, dirname as dirname2 } from "node:path";
 import { spawn } from "node:child_process";
 
 // src/parse.js
@@ -80,16 +79,16 @@ var PANEL_HEADING = /^##\s+(.+?)\s*$/;
 var ATTR_BLOCK = /\s*\{([^{}]*)\}\s*$/;
 var PANEL_ID = /^([A-Z][0-9]?)\s+(.+)$/;
 var ATTR_TOKEN = /([\w-]+)(?:=("[^"]*"|'[^']*'|\S+))?/g;
-function parseDoc(source) {
+function parseDoc(source, { defaults: defaults2 = {} } = {}) {
   const lines = String(source).replace(/\r\n?/g, "\n").split("\n");
-  const { meta, bodyStart } = parseFrontmatter(lines);
+  const { meta, bodyStart } = parseFrontmatter(lines, { ...DEFAULT_META, ...defaults2 });
   const sections = splitSections(lines, bodyStart);
   const intro = extractTitle(sections.intro, meta);
   const panels = assignIds(sections.panels);
   return { meta, intro, panels };
 }
-function parseFrontmatter(lines) {
-  if (lines[0]?.trim() !== "---") return { meta: { ...DEFAULT_META }, bodyStart: 0 };
+function parseFrontmatter(lines, base) {
+  if (lines[0]?.trim() !== "---") return { meta: { ...base }, bodyStart: 0 };
   const end = lines.findIndex((l3, i) => i > 0 && l3.trim() === "---");
   if (end === -1) throw new ParseError("frontmatter \u672A\u95ED\u5408\uFF1A\u7F3A\u5C11\u7ED3\u675F\u884C ---", 1);
   const entries = {};
@@ -100,7 +99,7 @@ function parseFrontmatter(lines) {
     if (!m) throw new ParseError(`frontmatter \u65E0\u6CD5\u89E3\u6790\uFF1A"${lines[i]}"\uFF0C\u5E94\u4E3A key: value`, i + 1);
     entries[m[1]] = { value: coerce(m[1], unquote(m[2])), line: i + 1 };
   }
-  const meta = { ...DEFAULT_META };
+  const meta = { ...base };
   for (const [key, { value, line }] of Object.entries(entries)) {
     if (CHOICES[key] && !CHOICES[key].includes(String(value))) {
       throw new ParseError(`${key} \u7684\u503C "${value}" \u65E0\u6548\uFF0C\u53EF\u9009\uFF1A${CHOICES[key].join(" | ")}`, line);
@@ -4538,8 +4537,8 @@ function detectLang(text) {
   }
   return cjk * 3 >= latin ? "zh" : "en";
 }
-function renderDoc(source, overrides = {}) {
-  const doc2 = parseDoc(source);
+function renderDoc(source, overrides = {}, defaults2 = {}) {
+  const doc2 = parseDoc(source, { defaults: defaults2 });
   for (const [key, value] of Object.entries(overrides)) {
     if (value === void 0) continue;
     if (CHOICES[key] && !CHOICES[key].includes(String(value))) {
@@ -4613,6 +4612,91 @@ ${RUNTIME_JS}</script>
 `;
 }
 
+// src/config.js
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { join, dirname } from "node:path";
+var ConfigError = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ConfigError";
+  }
+};
+var CONFIG_KEYS = Object.freeze({
+  open: { type: "bool", default: true, label: "\u751F\u6210\u540E\u81EA\u52A8\u7528\u6D4F\u89C8\u5668\u6253\u5F00\u9875\u9762" },
+  always: { type: "bool", default: true, label: "\u9AD8\u9891\u6A21\u5F0F\uFF1A\u7ED9\u7ED3\u8BBA\u65F6\u90FD\u9644\u4E00\u9875\uFF08\u9700\u5B89\u88C5 answer-me-with-html-always \u63D2\u4EF6\uFF09" },
+  theme: { type: "enum", choices: CHOICES.theme, default: "blueprint", label: "\u9ED8\u8BA4\u4E3B\u9898" },
+  mode: { type: "enum", choices: CHOICES.mode, default: "auto", label: "\u9ED8\u8BA4\u660E\u6697\u6A21\u5F0F" },
+  style: { type: "enum", choices: CHOICES.style, default: "80", label: "STE \u5199\u4F5C\u68C0\u67E5\u4E25\u683C\u5EA6" }
+});
+var TRUE = /* @__PURE__ */ new Set(["on", "true", "yes", "1", "\u5F00", "\u5F00\u542F", "\u6253\u5F00"]);
+var FALSE = /* @__PURE__ */ new Set(["off", "false", "no", "0", "\u5173", "\u5173\u95ED"]);
+function amHome(env = process.env) {
+  return env.AM_HOME || join(homedir(), ".answer-me-with-html");
+}
+function configPath(env = process.env) {
+  return join(amHome(env), "config.json");
+}
+var defaults = () => Object.fromEntries(Object.entries(CONFIG_KEYS).map(([k2, s]) => [k2, s.default]));
+function coerce2(key, raw) {
+  const spec = CONFIG_KEYS[key];
+  if (!spec) throw new ConfigError(`\u6CA1\u6709\u914D\u7F6E\u9879 "${key}"\u3002\u53EF\u7528\uFF1A${Object.keys(CONFIG_KEYS).join(" | ")}`);
+  if (spec.type === "bool") {
+    if (typeof raw === "boolean") return raw;
+    const v2 = String(raw).trim().toLowerCase();
+    if (TRUE.has(v2)) return true;
+    if (FALSE.has(v2)) return false;
+    throw new ConfigError(`${key} \u53EA\u63A5\u53D7 on / off`);
+  }
+  const v = String(raw).trim();
+  if (!spec.choices.includes(v)) throw new ConfigError(`${key} \u7684\u503C "${v}" \u65E0\u6548\uFF0C\u53EF\u9009\uFF1A${spec.choices.join(" | ")}`);
+  return v;
+}
+function readStored(env) {
+  const file = configPath(env);
+  if (!existsSync(file)) return { stored: {} };
+  try {
+    const data = JSON.parse(readFileSync(file, "utf8"));
+    return { stored: data && typeof data === "object" && !Array.isArray(data) ? data : {} };
+  } catch (e) {
+    return { stored: {}, warning: `${file} \u65E0\u6CD5\u89E3\u6790\uFF0C\u5DF2\u4F7F\u7528\u9ED8\u8BA4\u914D\u7F6E\uFF08${e.message}\uFF09` };
+  }
+}
+function readConfig(env = process.env) {
+  const { stored, warning } = readStored(env);
+  const values = defaults();
+  for (const [k2, v] of Object.entries(stored)) {
+    if (!CONFIG_KEYS[k2]) continue;
+    try {
+      values[k2] = coerce2(k2, v);
+    } catch {
+    }
+  }
+  return { values, stored, warning, path: configPath(env) };
+}
+function writeStored(stored, env) {
+  const file = configPath(env);
+  if (!Object.keys(stored).length) {
+    rmSync(file, { force: true });
+    return;
+  }
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, `${JSON.stringify(stored, null, 2)}
+`);
+}
+function setConfig(key, raw, env = process.env) {
+  const value = coerce2(key, raw);
+  const { stored } = readStored(env);
+  writeStored({ ...stored, [key]: value }, env);
+  return value;
+}
+function resetConfig(key, env = process.env) {
+  if (key !== void 0 && !CONFIG_KEYS[key]) coerce2(key, "");
+  const { stored } = readStored(env);
+  const next = key === void 0 ? {} : Object.fromEntries(Object.entries(stored).filter(([k2]) => k2 !== key));
+  writeStored(next, env);
+}
+
 // src/cli.js
 var MAX_LISTED_WARNINGS = 20;
 var USAGE = `Answer me with HTML ${VERSION} \u2014 \u628A Markdown \u5185\u5BB9\u7A3F\u6E32\u67D3\u6210\u5355\u6587\u4EF6 HTML \u89E3\u91CA\u9875
@@ -4621,11 +4705,13 @@ var USAGE = `Answer me with HTML ${VERSION} \u2014 \u628A Markdown \u5185\u5BB9\
   am render <file|->  [-o \u8F93\u51FA\u8DEF\u5F84] [--no-open] [--theme blueprint|shadcn]
                       [--template sheet|doc] [--style off|80|strict] [--mode auto|light|dark]
   am lint   <file|->  [--style off|80|strict]     \u53EA\u505A STE \u53D7\u63A7\u5199\u4F5C\u68C0\u67E5
+  am config [set <\u952E> <\u503C> | get <\u952E> | reset [\u952E]] \u67E5\u770B\u6216\u4FEE\u6539\u914D\u7F6E
   am list                                         \u5217\u51FA\u6A21\u677F\u3001\u4E3B\u9898\u3001\u7EC4\u4EF6
   am help [\u7EC4\u4EF6\u540D|format]                          \u67E5\u770B\u7EC4\u4EF6\u8BED\u6CD5 / \u7A3F\u4EF6\u683C\u5F0F
 
 - \u6587\u4EF6\u53C2\u6570\u5199 - \u8868\u793A\u4ECE stdin \u8BFB\u53D6\uFF08\u9002\u5408 heredoc\uFF1Aam render - <<'EOF' ... EOF\uFF09\u3002
-- \u9ED8\u8BA4\u8F93\u51FA\u5230 ~/.answer-me-with-html/pages/\uFF08\u53EF\u7528\u73AF\u5883\u53D8\u91CF AM_HOME \u4FEE\u6539\uFF09\uFF0C\u5E76\u81EA\u52A8\u6253\u5F00\u6D4F\u89C8\u5668\u3002`;
+- \u9ED8\u8BA4\u8F93\u51FA\u5230 ~/.answer-me-with-html/pages/\uFF08\u53EF\u7528\u73AF\u5883\u53D8\u91CF AM_HOME \u4FEE\u6539\uFF09\u3002
+- \u662F\u5426\u81EA\u52A8\u6253\u5F00\u6D4F\u89C8\u5668\u3001\u9ED8\u8BA4\u4E3B\u9898\u7B49\u7528 am config \u8BBE\u7F6E\uFF1B--open / --no-open \u53EA\u5F71\u54CD\u8FD9\u4E00\u6B21\u3002`;
 var FORMAT = `\u7A3F\u4EF6\u683C\u5F0F\uFF08\u6269\u5C55 Markdown\uFF09
 
 ---
@@ -4670,6 +4756,7 @@ async function main(argv, io = {}) {
       options: {
         out: { type: "string", short: "o" },
         "no-open": { type: "boolean" },
+        open: { type: "boolean" },
         theme: { type: "string" },
         template: { type: "string" },
         style: { type: "string" },
@@ -4684,7 +4771,7 @@ async function main(argv, io = {}) {
 ${USAGE}`);
     return 2;
   }
-  const { values: opts, positionals: [cmd, arg] } = parsed;
+  const { values: opts, positionals: [cmd, arg, ...rest] } = parsed;
   if (opts.version) return print(VERSION), 0;
   if (opts.help || !cmd) return print(USAGE), 0;
   switch (cmd) {
@@ -4692,6 +4779,8 @@ ${USAGE}`);
       return withSource(arg, io, fail, (src) => cmdRender(src, opts, { print, fail, env, cwd: io.cwd }));
     case "lint":
       return withSource(arg, io, fail, (src) => cmdLint(src, opts, { print, fail }));
+    case "config":
+      return cmdConfig([arg, ...rest].filter((x2) => x2 !== void 0), { print, fail, env });
     case "list":
       return cmdList(print), 0;
     case "help":
@@ -4710,7 +4799,7 @@ async function withSource(arg, io, fail, fn3) {
   }
   let src;
   try {
-    src = arg === "-" ? await readStream(io.stdin ?? process.stdin) : readFileSync(resolve(io.cwd ?? process.cwd(), arg), "utf8");
+    src = arg === "-" ? await readStream(io.stdin ?? process.stdin) : readFileSync2(resolve(io.cwd ?? process.cwd(), arg), "utf8");
   } catch (e) {
     fail(`\u2717 \u65E0\u6CD5\u8BFB\u53D6\u7A3F\u4EF6\uFF1A${e.message}`);
     return 2;
@@ -4726,21 +4815,31 @@ async function readStream(stream) {
   for await (const chunk of stream) chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
   return Buffer.concat(chunks).toString("utf8");
 }
+function shouldOpen(opts, env, config) {
+  if (opts.open) return true;
+  if (opts["no-open"]) return false;
+  if (env.AM_NO_OPEN && env.AM_NO_OPEN !== "0") return false;
+  if (env.CI) return false;
+  return config.open !== false;
+}
 function cmdRender(src, opts, { print, fail, env, cwd }) {
+  const config = readConfig(env);
+  if (config.warning) fail(`! ${config.warning}`);
+  const { theme, mode, style } = config.values;
   let result;
   try {
-    result = renderDoc(src, { theme: opts.theme, template: opts.template, style: opts.style, mode: opts.mode });
+    result = renderDoc(src, { theme: opts.theme, template: opts.template, style: opts.style, mode: opts.mode }, { theme, mode, style });
   } catch (e) {
     return reportError(e, fail);
   }
-  const file = opts.out ? resolve(cwd ?? process.cwd(), opts.out) : join(env.AM_HOME || join(homedir(), ".answer-me-with-html"), "pages", `${slug(result.meta.title)}-${stamp()}.html`);
-  mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, result.html);
+  const file = opts.out ? resolve(cwd ?? process.cwd(), opts.out) : join2(amHome(env), "pages", `${slug(result.meta.title)}-${stamp()}.html`);
+  mkdirSync2(dirname2(file), { recursive: true });
+  writeFileSync2(file, result.html);
   const comps = Object.entries(result.stats.components).map(([k2, v]) => `${k2}\xD7${v}`).join(" ");
   print(`\u2713 ${file}`);
   print(`  ${result.meta.template} \xB7 ${result.meta.theme} \xB7 ${result.stats.panels} \u9762\u677F${comps ? ` \xB7 ${comps}` : ""}`);
   printWarnings(result.warnings, print, result.meta.style);
-  if (!opts["no-open"] && !env.AM_NO_OPEN && !env.CI) openFile(file);
+  if (shouldOpen(opts, env, config.values)) openFile(file);
   return 0;
 }
 function cmdLint(src, opts, { print, fail }) {
@@ -4784,6 +4883,43 @@ ${e.example.replace(/^/gm, "    ")}`);
     return 1;
   }
   throw e;
+}
+var showValue = (v) => typeof v === "boolean" ? v ? "on" : "off" : String(v);
+function cmdConfig(args, { print, fail, env }) {
+  const [action, key, value] = args;
+  try {
+    if (action === "set") {
+      if (key === void 0 || value === void 0) throw new ConfigError("\u7528\u6CD5\uFF1Aam config set <\u952E> <\u503C>");
+      print(`\u2713 ${key} = ${showValue(setConfig(key, value, env))}`);
+      return 0;
+    }
+    if (action === "get") {
+      if (!CONFIG_KEYS[key]) throw new ConfigError(`\u6CA1\u6709\u914D\u7F6E\u9879 "${key}"\u3002\u53EF\u7528\uFF1A${Object.keys(CONFIG_KEYS).join(" | ")}`);
+      print(showValue(readConfig(env).values[key]));
+      return 0;
+    }
+    if (action === "reset") {
+      resetConfig(key, env);
+      print(key ? `\u2713 ${key} \u5DF2\u6062\u590D\u9ED8\u8BA4` : "\u2713 \u5168\u90E8\u914D\u7F6E\u5DF2\u6062\u590D\u9ED8\u8BA4");
+      return 0;
+    }
+    if (action !== void 0) throw new ConfigError(`\u672A\u77E5\u64CD\u4F5C "${action}"\u3002\u7528\u6CD5\uFF1Aam config [set <\u952E> <\u503C> | get <\u952E> | reset [\u952E]]`);
+  } catch (e) {
+    if (!(e instanceof ConfigError)) throw e;
+    fail(`\u2717 ${e.message}`);
+    return 2;
+  }
+  const { values, stored, warning, path } = readConfig(env);
+  if (warning) fail(`! ${warning}`);
+  print(`\u914D\u7F6E\u6587\u4EF6\uFF1A${path}`);
+  for (const [k2, spec] of Object.entries(CONFIG_KEYS)) {
+    const mark = k2 in stored ? "*" : " ";
+    const options = spec.type === "bool" ? "on | off" : spec.choices.join(" | ");
+    print(`${mark} ${k2.padEnd(7)}${showValue(values[k2]).padEnd(10)}${spec.label}\uFF08${options}\uFF09`);
+  }
+  if (env.AM_NO_OPEN && env.AM_NO_OPEN !== "0") print("\u6CE8\u610F\uFF1A\u73AF\u5883\u53D8\u91CF AM_NO_OPEN \u751F\u6548\u4E2D\uFF0C\u4F1A\u8986\u76D6 open \u914D\u7F6E\u3002");
+  print("* \u8868\u793A\u4F60\u6539\u8FC7\u7684\u503C\u3002\u4FEE\u6539\uFF1Aam config set <\u952E> <\u503C>\uFF1B\u6062\u590D\u9ED8\u8BA4\uFF1Aam config reset [\u952E]");
+  return 0;
 }
 function cmdList(print) {
   print("\u6A21\u677F (template):");

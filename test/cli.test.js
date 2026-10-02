@@ -100,3 +100,43 @@ test('cli: 参数错误与缺失', async () => {
   assert.equal((await run(['render', '-'], { stdin: '   ' })).code, 2);
   assert.equal((await run(['render', '--wat'])).code, 2);
 });
+
+test('cli config: 显示全部配置项、当前值与配置文件路径', async () => {
+  const r = await run(['config']);
+  assert.equal(r.code, 0, r.err);
+  assert.match(r.out, /config\.json/);
+  for (const key of ['open', 'always', 'theme', 'mode', 'style']) assert.match(r.out, new RegExp(`\\b${key}\\b`));
+});
+
+test('cli config: set / get / reset，改过的值带 * 标记', async () => {
+  assert.equal((await run(['config', 'set', 'theme', 'shadcn'])).code, 0);
+  assert.equal((await run(['config', 'get', 'theme'])).out.trim(), 'shadcn');
+  assert.match((await run(['config'])).out, /\* theme\s+shadcn/);
+  const rendered = await run(['render', '-', '-o', 'cfg.html'], { stdin: '## A\nx' });
+  assert.match(readFileSync(join(dir, 'cfg.html'), 'utf8'), /data-theme="shadcn"/, 'render 读取配置里的默认主题');
+  assert.equal(rendered.code, 0);
+  assert.equal((await run(['config', 'reset', 'theme'])).code, 0);
+  assert.equal((await run(['config', 'get', 'theme'])).out.trim(), 'blueprint');
+});
+
+test('cli config: 布尔值输出 on/off；非法键或值返回 2', async () => {
+  await run(['config', 'set', 'open', 'off']);
+  assert.equal((await run(['config', 'get', 'open'])).out.trim(), 'off');
+  await run(['config', 'reset']);
+  const bad = await run(['config', 'set', 'theme', 'neon']);
+  assert.equal(bad.code, 2);
+  assert.match(bad.err, /blueprint \| shadcn/);
+  assert.equal((await run(['config', 'set', 'nope', '1'])).code, 2);
+  assert.equal((await run(['config', 'frob'])).code, 2);
+});
+
+test('shouldOpen: --no-open > AM_NO_OPEN > 配置 open；--open 强制打开', async () => {
+  const { shouldOpen } = await import('../src/cli.js');
+  assert.equal(shouldOpen({}, {}, { open: true }), true);
+  assert.equal(shouldOpen({}, {}, { open: false }), false);
+  assert.equal(shouldOpen({ 'no-open': true }, {}, { open: true }), false);
+  assert.equal(shouldOpen({}, { AM_NO_OPEN: '1' }, { open: true }), false);
+  assert.equal(shouldOpen({}, { AM_NO_OPEN: '0' }, { open: true }), true, 'AM_NO_OPEN=0 不算关闭');
+  assert.equal(shouldOpen({}, { CI: 'true' }, { open: true }), false);
+  assert.equal(shouldOpen({ open: true }, { AM_NO_OPEN: '1' }, { open: false }), true);
+});

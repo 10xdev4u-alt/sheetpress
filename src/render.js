@@ -51,8 +51,8 @@ export function detectLang(text) {
   return cjk * 3 >= latin ? 'zh' : 'en';
 }
 
-export function renderDoc(source, overrides = {}) {
-  const doc = parseDoc(source);
+export function renderDoc(source, overrides = {}, defaults = {}) {
+  const doc = parseDoc(source, { defaults });
   for (const [key, value] of Object.entries(overrides)) {
     if (value === undefined) continue;
     if (CHOICES[key] && !CHOICES[key].includes(String(value))) {
