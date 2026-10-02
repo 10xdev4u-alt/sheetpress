@@ -88,6 +88,25 @@ cp -R /tmp/answer-me/skills/answer-me ~/.claude/skills/answer-me
 
 页面会保存在 `~/.answer-me/pages/`。右上角可以切换主题、切换亮暗，也可以复制生成这一页的 Markdown 原稿。
 
+## 高频模式（可选）
+
+默认情况下，只有问题够复杂时 Agent 才会出页面。如果你希望它**每次给结论都附一页**，可以打开高频模式。
+
+打开后，Agent 每轮都会收到一句很短的提醒（约 70 个 token）。只要这一轮给出了结论、总结、方案或对比，它就会顺手出一页 2～4 个面板的小页面，并在回复最后附上路径。闲聊和一句话能答完的问题不受影响。
+
+**Claude Code：** 再装一个插件就行。
+
+```
+/plugin marketplace add QingYunA/answer-me
+/plugin install answer-me-always@answer-me
+```
+
+不想要了，执行 `/plugin uninstall answer-me-always@answer-me` 关掉。
+
+**其他 Agent：** 把下面这段话粘贴给你的 Agent，让它写进自己的规则文件（比如 `AGENTS.md`）：
+
+> 帮我打开 answer-me 的高频模式：在你的全局规则文件里加一条规则——"[answer-me always-on] 只要回复里给出了结论、总结、方案、对比、评审或讲解，就同时用 answer-me skill 生成一页 HTML（日常结论用 2～4 个面板），并在回复最后附上页面路径。闲聊、一句话答案、纯命令输出、我要求纯文本时除外。"
+
 ## 为什么做这个
 
 Karpathy 发过[一条推文](https://x.com/karpathy/status/2105819303471976479)。大意是 LLM 干的活越来越多，人反而越来越难跟上它的输出。比起读一大段文字，看一张图、一页网页要轻松得多。
