@@ -5,7 +5,7 @@
 <h1 align="center">Answer me with HTML</h1>
 
 <p align="center">
-  <b>An agent skill. Ask a hard question, get a page you can actually read instead of a wall of text.</b>
+  <b>An agent skill. Ask a hard question, get a page you can actually read instead of a wall of text.<br>The model writes about 1/7 of the tokens it would need to hand-write the HTML.</b>
 </p>
 
 <p align="center">
@@ -32,7 +32,27 @@ The agent writes a short Markdown draft and hands it to the CLI that ships with 
   <img src="docs/demo/demo.gif" alt="Demo: the agent answers in the terminal and links a generated page" width="100%">
 </p>
 
-<p align="center"><sub>13-second demo. <a href="docs/demo/demo.mp4">Download the MP4</a>.</sub></p>
+<p align="center"><sub>18-second demo. <a href="docs/demo/demo.mp4">Download the MP4</a>.</sub></p>
+
+## Why not just ask for HTML?
+
+You can. Models write decent HTML now. The problem is the bill you pay in output tokens: the model has to type every line of CSS, every wrapper `div` and every SVG coordinate. Output tokens are also what you sit and wait for.
+
+With this skill, the model writes only the content. We asked the same questions with the same model both ways (3 topics × 3 runs, medians, Claude Sonnet 5.5):
+
+| | Ask for HTML directly | Answer me with HTML | |
+| :--- | ---: | ---: | :--- |
+| Output tokens | 6,873 | **923** | **7.4× fewer** |
+| Time | 46 s | **13 s** | **3.6× faster** |
+| Cost per answer | $0.22 | $0.26 | about the same |
+
+<p align="center">
+  <img src="docs/images/plain-vs-skill.png" alt="The same TCP question answered both ways" width="100%">
+</p>
+
+<p align="center"><sub>Same prompt, same model. Both pages are usable. One took 9,351 output tokens, the other 899.</sub></p>
+
+Why the cost doesn't drop too: the skill adds two short turns (load the skill, run the CLI), and every turn re-reads the conversation context. You save the waiting, not the bill. Per-topic numbers and the script to reproduce them are in [bench/](bench/README.md).
 
 ## Install
 
@@ -131,7 +151,7 @@ Pause it with `/answer-me-with-html:config always off`. You don't need to uninst
 
 > Turn on always-on mode for Answer me with HTML: add a global rule — "[answer-me-with-html always-on] Whenever a reply gives a conclusion, summary, plan, comparison, review or explanation, even a short one, also make a page with the answer-me-with-html skill (2 to 4 panels for routine answers), render it with --no-open, and end the reply with the page path. Skip casual chat, one- or two-sentence replies with no conclusion, pure command output, and requests for plain text."
 
-## Why
+## Background
 
 Andrej Karpathy [posted](https://x.com/karpathy/status/2105819303471976479) that as LLMs do more of the work, keeping up with their output becomes the hard part. A diagram or a web page is far easier to take in than a long block of text.
 
@@ -141,7 +161,7 @@ A decent page took a minute or two. Most of that time went into hundreds of line
 
 So Answer me with HTML takes that work away from the model. The model writes content. The CLI handles layout, color and drawing.
 
-## Why it's fast
+## How it works
 
 This is all the model writes:
 
@@ -171,20 +191,10 @@ The CLI does the rest. It picks the template, places the panels, applies the the
   <img src="docs/images/tcp-en.png" alt="The TCP example page" width="100%">
 </p>
 
-The model writes only a small part of the final HTML:
-
-| Example | Draft | Final HTML | Without CSS |
-| :--- | ---: | ---: | ---: |
-| [ste100](examples/ste100.md) (mostly text and tables) | ≈1.4k tok | ≈10.8k tok (**7.8×**) | ≈5.0k tok (3.6×) |
-| [tcp](examples/tcp.md) (2 sequence diagrams, 1 flow chart) | ≈0.6k tok | ≈9.3k tok (**16×**) | ≈3.5k tok (6.1×) |
-| [architecture](examples/architecture.md) (flow, sequence, tree) | ≈0.4k tok | ≈8.4k tok (**19.5×**) | ≈2.6k tok (6.2×) |
-
-<sub>The final HTML is the least a model would have to write by hand to get the same page. Token counts are estimated from character counts, not with a real tokenizer.</sub>
-
-The more diagrams, the bigger the saving. SVG coordinates are the slowest and most error-prone part for a model to write.
-
 ## Features
 
+- **Fewer tokens, less waiting:** The model writes a short draft, about 900 output tokens, instead of 7,000 tokens of HTML, CSS and SVG. See the [benchmark](bench/README.md).
+- **Layout by code:** Panel placement and diagram coordinates are computed, not guessed. Labels don't get cut off, and there are no gaps in the grid.
 - **Fixes its own mistakes:** When a draft has an error, the CLI returns the line number, the component and a correct example. The agent fixes it in one try.
 - **Two themes:** `blueprint` looks like an engineering drawing. `shadcn` uses clean cards. Both have light and dark modes.
 - **One file, no dependencies:** Each page is a single `.html` with no CDN links or web fonts. It opens offline and is easy to share.

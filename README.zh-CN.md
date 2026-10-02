@@ -5,7 +5,7 @@
 <h1 align="center">Answer me with HTML</h1>
 
 <p align="center">
-  <b>一个 Agent Skill：遇到复杂问题，Agent 不再甩给你一堵文字墙，而是给你一页能看懂的 HTML。</b>
+  <b>一个 Agent Skill：遇到复杂问题，Agent 不再甩给你一堵文字墙，而是给你一页能看懂的 HTML。<br>模型要写的 token，只有它直接手写 HTML 的约 1/7。</b>
 </p>
 
 <p align="center">
@@ -32,7 +32,27 @@ Agent 会写一份很短的 Markdown 稿件，交给 skill 自带的 CLI。大�
   <img src="docs/demo/demo.gif" alt="演示：Agent 在终端回答，并附上生成的页面" width="100%">
 </p>
 
-<p align="center"><sub>13 秒演示。<a href="docs/demo/demo.mp4">下载 MP4</a>。</sub></p>
+<p align="center"><sub>18 秒演示。<a href="docs/demo/demo.mp4">下载 MP4</a>。</sub></p>
+
+## 为什么不直接让 AI 输出 HTML？
+
+当然可以，现在的模型写 HTML 已经写得不错了。问题在于输出 token 的账：每一行 CSS、每一层 `div`、每一个 SVG 坐标，都得模型一个字一个字地打出来。而你在屏幕前等的，也正是这些输出 token。
+
+用这个 skill，模型只写内容。我们用同一个模型、同样的问题，两种方式各做了一遍（3 个题目 × 每题 3 次，取中位数，Claude Sonnet 5.5）：
+
+| | 直接要 HTML | Answer me with HTML | |
+| :--- | ---: | ---: | :--- |
+| 输出 token | 6,873 | **923** | **少 7.4 倍** |
+| 耗时 | 46 秒 | **13 秒** | **快 3.6 倍** |
+| 单次花费 | $0.22 | $0.26 | 基本持平 |
+
+<p align="center">
+  <img src="docs/images/plain-vs-skill.png" alt="同一个 TCP 问题的两种做法" width="100%">
+</p>
+
+<p align="center"><sub>同样的提示词、同一个模型。两页都能用：一页花了 9,351 个输出 token，另一页只花了 899 个。</sub></p>
+
+为什么花费没有跟着降：用 skill 会多两轮很短的对话（加载 skill、运行 CLI），每一轮都要重读一遍上下文。省下的是等待时间，不是账单。每个题目的详细数据和复现脚本见 [bench/](bench/README.md)。
 
 ## 安装
 
@@ -141,7 +161,7 @@ Karpathy 发过[一条推文](https://x.com/karpathy/status/2105819303471976479)
 
 所以 Answer me with HTML 把这些活从模型手里拿走了。模型只写内容，排版、配色、画图都交给 CLI。
 
-## 它是怎么变快的
+## 原理
 
 模型只需要写这样一份稿件：
 
@@ -171,20 +191,10 @@ SYN_RCVD -> *ESTABLISHED: 收 ACK
   <img src="docs/images/tcp.png" alt="TCP 示例页面" width="100%">
 </p>
 
-模型要输出的内容，只有最终 HTML 的一小部分：
-
-| 示例 | 稿件 | 最终 HTML | 不算 CSS |
-| :--- | ---: | ---: | ---: |
-| [ste100](examples/ste100.md)（以文字和表格为主） | ≈1.4k tok | ≈10.8k tok（**7.8×**） | ≈5.0k tok（3.6×） |
-| [tcp](examples/tcp.md)（2 张时序图 + 1 张流程图） | ≈0.6k tok | ≈9.3k tok（**16×**） | ≈3.5k tok（6.1×） |
-| [architecture](examples/architecture.md)（流程图 + 时序图 + 树） | ≈0.4k tok | ≈8.4k tok（**19.5×**） | ≈2.6k tok（6.2×） |
-
-<sub>最终 HTML 的体积，就是模型手写出一模一样的页面时至少要输出的量。token 数按字符比例估算，没有用真实的分词器。</sub>
-
-图越多，省得越多。SVG 坐标正是模型写得最慢、最容易出错的部分。
-
 ## 特性
 
+- **省 token、少等待:** 模型只写一份约 900 token 的简短稿件，不用输出 7,000 token 的 HTML、CSS 和 SVG。详见[基准测试](bench/README.md)。
+- **版面由代码计算:** 面板位置和图形坐标都是算出来的，不靠模型猜。文字不会被截断，网格里也不会留空洞。
 - **出错能自己改:** 稿件写错时，CLI 会给出行号、组件名和一段正确示例。Agent 照着改一次就行。
 - **两套主题:** blueprint 是图纸风，shadcn 是卡片风。都带亮色和暗色，页面上可以随时切换。
 - **单文件、零依赖:** 产物是一个 `.html`，不引用任何 CDN 或外部字体。断网也能打开，发给别人也能看。

@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 // 把演示帧合成为 docs/demo/demo.gif 与 demo.mp4（需要 ffmpeg）。
 // 用法：node docs/demo/make-gif.mjs <帧目录>
-// 帧来源：docs/demo/terminal.html?step=1|2|3 与 examples/tcp.en.md 渲染页，1280×800 截图。
+// 帧来源（均为 1280×800 截图）：docs/demo/compare.html（实测数据）、docs/demo/terminal.html?step=1|2|3、
+// examples/tcp.en.md 渲染页，以及 docs/images/plain-vs-skill.png 的顶部。
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
 const FRAMES = [
-  ['f1-terminal.png', 1.6], ['f2-terminal.png', 2.0], ['f3-terminal.png', 2.8],
-  ['f4-page.png', 2.6], ['f5-page-scroll.png', 2.2], ['f6-shadcn.png', 2.0], ['f7-dark.png', 2.8],
+  ['f0-compare.png', 3.2],
+  ['f1-terminal.png', 1.4], ['f2-terminal.png', 1.8], ['f3-terminal.png', 2.6],
+  ['f4-page.png', 2.4], ['f5-page-scroll.png', 2.0], ['f6-shadcn.png', 1.8], ['f7-dark.png', 2.2],
+  ['f8-sbs.png', 3.4],
 ];
 const FADE = 0.4;
 const dir = process.argv[2];

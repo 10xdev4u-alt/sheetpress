@@ -9,14 +9,14 @@
       "name": "answer-me-with-html",
       "source": "./",
       "description": "复杂问题用一页 HTML 回答：模型只写 Markdown，内置 CLI 负责出页面。",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "category": "visualization"
     },
     {
       "name": "answer-me-with-html-always",
       "source": "./plugins/answer-me-with-html-always",
       "description": "可选的高频模式：每轮提醒 Agent 给出结论时附一页 HTML。需要同时安装 answer-me-with-html。",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "category": "visualization"
     }
   ]

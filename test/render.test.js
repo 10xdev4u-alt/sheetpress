@@ -119,3 +119,21 @@ test('render: rows 属性纵向跨行；bare 属性去掉面板标题栏', () =>
   assert.match(html, /id="panel-A" style="grid-column: span 2; grid-row: span 2"/);
   assert.match(html, /<section class="am-panel am-panel--bare" id="panel-B">\n<div class="am-panel-body">/);
 });
+
+test('sheet: 面板放不下下一个时自动拉满当前行，不留空洞', async () => {
+  const { fillRows } = await import('../src/templates/sheet.js');
+  const P = (span) => ({ attrs: span ? { span } : {} });
+  // cols=2：A(2) | B(1) C(2) → B 后面放不下 C，B 拉到 2
+  assert.deepEqual(fillRows([P(2), P(), P(2), P()], 2), [2, 2, 2, 2]);
+  // cols=3：A(1) B(1) C(2) → A B 占 2，C 放不下，B 拉到 2；C(2) 是最后一行，拉满到 3
+  assert.deepEqual(fillRows([P(), P(), P(2)], 3), [1, 2, 3]);
+  // 刚好填满时不变
+  assert.deepEqual(fillRows([P(), P(2), P(3)], 3), [1, 2, 3]);
+  // 用了 rows 跨行时不做调整，保留作者的布局
+  assert.deepEqual(fillRows([{ attrs: { rows: 2 } }, P(), P(2)], 3), [1, 1, 2]);
+});
+
+test('sheet: 自动拉宽体现在渲染结果里', () => {
+  const { html } = renderDoc('---\ncols: 2\n---\n## A {span=2}\nx\n## B\ny\n## C {span=2}\nz');
+  assert.match(html, /id="panel-B" style="grid-column: span 2"/);
+});
