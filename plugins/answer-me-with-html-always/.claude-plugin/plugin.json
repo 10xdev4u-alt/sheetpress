@@ -1,6 +1,6 @@
 {
   "name": "answer-me-with-html-always",
-  "description": "answer-me-with-html 高频模式：每轮提醒 Agent，给出结论、总结、方案或对比时都附一页 HTML。需要同时安装 answer-me-with-html。",
+  "description": "Optional always-on mode: reminds the agent every turn to attach a one-page HTML whenever it gives a conclusion, summary, plan or comparison. Requires answer-me-with-html.",
   "version": "0.2.2",
   "author": {
     "name": "QingYunA"

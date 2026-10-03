@@ -1,5 +1,5 @@
 ---
-description: 查看或修改 Answer me with HTML 的配置：自动打开浏览器、高频模式、默认主题、明暗、STE 严格度
+description: View or change Answer me with HTML settings — auto-open browser, always-on mode, default theme, light/dark, STE strictness
 argument-hint: "[open|always|theme|mode|style <值>] | reset [键]"
 allowed-tools: Bash(node *)
 ---

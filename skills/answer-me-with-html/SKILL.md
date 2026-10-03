@@ -1,6 +1,6 @@
 ---
 name: answer-me-with-html
-description: 遇到复杂解释时，把回答做成一页可视化 HTML 解释页：模型只写扩展 Markdown 内容稿，skill 自带的 CLI 负责模板、组件、SVG 自动布局和 STE 受控写作检查，一次调用出单文件页面。用户说 `/answer-me-with-html config` 或想改设置（自动打开浏览器、高频模式、默认主题）时也用本 skill。当回答涉及以下任一情况时主动使用，不必等用户要求：≥3 个相互关联的概念；带分支或多参与者的流程 / 协议 / 架构；≥3 个维度的对比或取舍；层级结构（目录、模块、分类体系）；演进历史或阶段；用户说"讲讲原理 / 没看懂 / 画个图 / 解释一下这个代码库 / 用 HTML 讲 / explain visually"。不要用于：短问答（<200 字能说清）、要立即复制执行的命令、纯代码修改、用户明确要求纯文本时。
+description: When an answer is complex, renders it as a one-page visual HTML explainer: the model writes only a short extended-Markdown draft; the bundled CLI handles templates, components, SVG auto-layout and an STE controlled-writing check, producing a single-file page in one call. Also use it when the user says `/answer-me-with-html config` or wants to change settings (auto-open browser, always-on mode, default theme). Use it proactively, without being asked, when the answer involves any of: 3+ interrelated concepts; a flow / protocol / architecture with branches or multiple actors; a comparison or trade-off across 3+ dimensions; a hierarchy (directories, modules, taxonomies); an evolution or phases; or the user says "explain how it works / I don’t get it / draw a diagram / explain this codebase / explain visually / 讲讲原理 / 没看懂 / 画个图 / 用 HTML 讲". Do not use for: short Q&A (clear in under ~150 words), commands to copy and run immediately, pure code changes, or when the user asks for plain text.
 ---
 
 # Answer me with HTML：用一页 HTML 回答复杂问题
