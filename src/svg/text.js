@@ -1,5 +1,5 @@
-// SVG 布局在 Node 端完成，拿不到真实字体度量，只能按字符类别估算宽度。
-// 估算偏宽比偏窄安全：宁可节点留白，也不要文字溢出边框。
+// SVG layout is computed in Node, where real font metrics are unavailable, so width is estimated by character class.
+// Overestimating is safer than underestimating: prefer whitespace inside nodes over text overflowing its border.
 
 const CJK_RE = /[⺀-鿿가-힯豈-﫿︰-﹏＀-￯　-〿]/;
 const NARROW = new Set([...'iljtfrI.,:;|!\'`()[]{}']);
@@ -25,7 +25,7 @@ export function measure(str, size = 13, { mono = false } = {}) {
   return Math.round(units * size * 100) / 100;
 }
 
-// 切成不可再分的排版单元：一个汉字是一个单元，一段连续的非空白拉丁字符是一个单元。
+// Split into indivisible layout units: one CJK character is a unit, one run of non-whitespace Latin characters is a unit.
 function tokenize(str) {
   return String(str).match(/[⺀-鿿가-힯豈-﫿︰-﹏＀-￯　-〿]|[^\s⺀-鿿가-힯豈-﫿︰-﹏＀-￯　-〿]+|\s+/g) ?? [];
 }

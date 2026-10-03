@@ -1,11 +1,11 @@
-// doc：线性讲解。单栏阅读，面板 ≥ 3 个时左侧给出目录。
+// doc: linear explainer. Single-column reading; with 3+ panels, a table of contents is shown on the left.
 import { panelHtml, headHtml } from './panel.js';
 import { esc } from '../svg/text.js';
 
 export function doc({ meta, introHtml, panels }) {
   const withToc = panels.length >= 3;
   const toc = withToc
-    ? `<nav class="am-toc" aria-label="目录">${panels.map((p) => `<a href="#panel-${esc(p.id)}">${esc(p.id)} · ${esc(p.title)}</a>`).join('')}</nav>`
+    ? `<nav class="am-toc" aria-label="Contents">${panels.map((p) => `<a href="#panel-${esc(p.id)}">${esc(p.id)} · ${esc(p.title)}</a>`).join('')}</nav>`
     : '';
   return `<main class="am-doc">
 ${headHtml(meta, introHtml)}

@@ -1,5 +1,5 @@
-// 稿件解析：frontmatter → meta；`## ` 标题 → 面板（slot）；面板体 → markdown 块与围栏块。
-// 只做结构切分，不渲染。所有行号均为 1 起算的源文件行号，供错误提示与 STE lint 使用。
+// Brief parsing: frontmatter → meta; `## ` headings → panels (slots); panel bodies → markdown and fence blocks.
+// Structure splitting only, no rendering. All line numbers are 1-based source lines, used for error hints and STE lint.
 
 export class ParseError extends Error {
   constructor(message, line) {
@@ -32,7 +32,7 @@ const ATTR_BLOCK = /\s*\{([^{}]*)\}\s*$/;
 const PANEL_ID = /^([A-Z][0-9]?)\s+(.+)$/;
 const ATTR_TOKEN = /([\w-]+)(?:=("[^"]*"|'[^']*'|\S+))?/g;
 
-// defaults：用户配置提供的默认值（如 theme / mode / style），稿件 frontmatter 显式写的值优先。
+// defaults: user-config defaults (e.g. theme / mode / style); explicit frontmatter values win.
 export function parseDoc(source, { defaults = {} } = {}) {
   const lines = String(source).replace(/\r\n?/g, '\n').split('\n');
   const { meta, bodyStart } = parseFrontmatter(lines, { ...DEFAULT_META, ...defaults });
@@ -45,21 +45,21 @@ export function parseDoc(source, { defaults = {} } = {}) {
 function parseFrontmatter(lines, base) {
   if (lines[0]?.trim() !== '---') return { meta: { ...base }, bodyStart: 0 };
   const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---');
-  if (end === -1) throw new ParseError('frontmatter 未闭合：缺少结束行 ---', 1);
+  if (end === -1) throw new ParseError('Unclosed frontmatter: missing closing --- line', 1);
 
   const entries = {};
   for (let i = 1; i < end; i++) {
     const raw = lines[i].replace(/\s+#.*$/, '').trim();
     if (!raw || raw.startsWith('#')) continue;
     const m = raw.match(/^([\w-]+)\s*:\s*(.*)$/);
-    if (!m) throw new ParseError(`frontmatter 无法解析："${lines[i]}"，应为 key: value`, i + 1);
+    if (!m) throw new ParseError(`Cannot parse frontmatter: "${lines[i]}", expected key: value`, i + 1);
     entries[m[1]] = { value: coerce(m[1], unquote(m[2])), line: i + 1 };
   }
 
   const meta = { ...base };
   for (const [key, { value, line }] of Object.entries(entries)) {
     if (CHOICES[key] && !CHOICES[key].includes(String(value))) {
-      throw new ParseError(`${key} 的值 "${value}" 无效，可选：${CHOICES[key].join(' | ')}`, line);
+      throw new ParseError(`Invalid value "${value}" for ${key}, expected: ${CHOICES[key].join(' | ')}`, line);
     }
     meta[key] = CHOICES[key] ? String(value) : value;
   }
@@ -84,7 +84,7 @@ function splitSections(lines, start) {
     if (fence) {
       flushMd();
       const close = findFenceClose(lines, i, fence[1]);
-      if (close === -1) throw new ParseError(`围栏块 ${fence[1]}${fence[2]} 未闭合`, i + 1);
+      if (close === -1) throw new ParseError(`Unclosed fence ${fence[1]}${fence[2]}`, i + 1);
       current.blocks.push({
         type: 'fence',
         lang: fence[2].toLowerCase(),

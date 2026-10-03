@@ -1,5 +1,5 @@
-// 主题 = 一组 CSS 变量。组件样式（base.css）只引用变量，因此切换主题只需切换 data-theme。
-// 每个主题提供 light / dark 两套取值；auto 模式跟随系统 prefers-color-scheme。
+// A theme is a set of CSS variables. Component styles (base.css) only reference variables, so switching themes just switches data-theme.
+// Each theme provides light / dark value sets; auto mode follows the system prefers-color-scheme.
 
 import { BASE_CSS } from '../assets.js';
 

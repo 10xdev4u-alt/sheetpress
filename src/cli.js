@@ -1,4 +1,4 @@
-// am CLI：render / lint / list / help。main() 接收注入的流与环境变量，方便测试。
+// am CLI: render / lint / list / help. main() accepts injected streams and env for testing.
 
 import { parseArgs } from 'node:util';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -14,48 +14,48 @@ import { amHome, readConfig, setConfig, resetConfig, CONFIG_KEYS, ConfigError } 
 
 const MAX_LISTED_WARNINGS = 20;
 
-const USAGE = `Answer me with HTML ${VERSION} — 把 Markdown 内容稿渲染成单文件 HTML 解释页
+const USAGE = `Answer me with HTML ${VERSION} — render a Markdown brief into a single-file HTML explainer page
 
-用法:
-  am render <file|->  [-o 输出路径] [--no-open] [--theme blueprint|shadcn]
+Usage:
+  am render <file|->  [-o output-path] [--no-open] [--theme blueprint|shadcn]
                       [--template sheet|doc] [--style off|80|strict] [--mode auto|light|dark]
-  am lint   <file|->  [--style off|80|strict]     只做 STE 受控写作检查
-  am config [set <键> <值> | get <键> | reset [键]] 查看或修改配置
-  am list                                         列出模板、主题、组件
-  am help [组件名|format]                          查看组件语法 / 稿件格式
+  am lint   <file|->  [--style off|80|strict]     STE controlled-writing check only
+  am config [set <key> <value> | get <key> | reset [key]] Show or change settings
+  am list                                         List templates, themes, and components
+  am help [component|format]                      Show component syntax / brief format
 
-- 文件参数写 - 表示从 stdin 读取（适合 heredoc：am render - <<'EOF' ... EOF）。
-- 默认输出到 ~/.answer-me-with-html/pages/（可用环境变量 AM_HOME 修改）。
-- 是否自动打开浏览器、默认主题等用 am config 设置；--open / --no-open 只影响这一次。`;
+- Pass - as the file argument to read from stdin (works with heredoc: am render - <<'EOF' ... EOF).
+- Output defaults to ~/.answer-me-with-html/pages/ (override with the AM_HOME env var).
+- Browser auto-open, the default theme, and similar settings use am config; --open / --no-open apply to this run only.`;
 
-const FORMAT = `稿件格式（扩展 Markdown）
+const FORMAT = `Brief format (extended Markdown)
 
 ---
-template: sheet        # sheet 图纸板（默认，多面板网格）| doc 线性讲解（单栏 + 目录）
-theme: blueprint       # blueprint 图纸风（默认）| shadcn 卡片风；页面内可切换
-title: 页面标题         # 也可以用正文第一行 "# 标题" 代替
-subtitle: 副标题        # 可选
-cols: 3                # sheet 网格列数，默认 3
-style: 80              # STE 检查严格度：off | 80（默认，只警告）| strict（不达标不生成）
-mode: auto             # auto 跟随系统 | light | dark
-source: asd-ste100.org # 其他任意键会显示在页头元信息行
+template: sheet        # sheet blueprint board (default, multi-panel grid) | doc linear explainer (single column + TOC)
+theme: blueprint       # blueprint drafting style (default) | shadcn card style; switchable in-page
+title: Page title       # or use the first "# Title" line of the body instead
+subtitle: Subtitle     # optional
+cols: 3                # sheet grid columns, default 3
+style: 80              # STE check strictness: off | 80 (default, warnings only) | strict (no output when failing)
+mode: auto             # auto follows system | light | dark
+source: asd-ste100.org # any other key shows in the header meta line
 ---
-导语（可选，显示在标题下方）
+Lede (optional, shown below the title)
 
-## A 面板标题 {span=2 meta="右上角说明"}
-普通 Markdown：段落、列表、表格、引用、行内代码……
-表格单元格写 ok / no / warn（可跟文字，如 "ok 已批准"）会渲染成 ✓ / ✗ / ! 徽章。
+## A Panel title {span=2 meta="top-right note"}
+Plain Markdown: paragraphs, lists, tables, quotes, inline code…
+Table cells starting with ok / no / warn (optionally followed by text, e.g. "ok Approved") render as ✓ / ✗ / ! badges.
 
-\`\`\`flow LR          ← 围栏块语言名 = 组件名，后面是组件参数
+\`\`\`flow LR          ← fence language name = component name, followed by component args
 A -> B
 \`\`\`
 
-\`\`\`html             ← html / svg 围栏块原样嵌入（逃生口）
-<div>任意内容</div>
+\`\`\`html             ← html / svg fences are embedded as-is (escape hatch)
+<div>Arbitrary content</div>
 \`\`\`
 
-- "## " 开启一个面板；字母 ID 可省略（自动分配 A、B、C…）。span 让面板跨列。
-- 组件列表见 am list；单个组件语法见 am help <组件名>。`;
+- "## " starts a panel; the letter ID is optional (auto-assigned A, B, C…). span makes a panel span columns.
+- See am list for the component list; see am help <component> for one component's syntax.`;
 
 export async function main(argv, io = {}) {
   const out = io.stdout ?? process.stdout;
@@ -97,25 +97,25 @@ export async function main(argv, io = {}) {
     case 'list': return cmdList(print), 0;
     case 'help': return cmdHelp(arg, { print, fail });
     default:
-      fail(`✗ 未知命令 "${cmd}"\n\n${USAGE}`);
+      fail(`✗ Unknown command "${cmd}"\n\n${USAGE}`);
       return 2;
   }
 }
 
 async function withSource(arg, io, fail, fn) {
   if (!arg) {
-    fail('✗ 缺少稿件参数：传入文件路径，或用 - 从 stdin 读取');
+    fail('✗ Missing brief argument: pass a file path, or - to read from stdin');
     return 2;
   }
   let src;
   try {
     src = arg === '-' ? await readStream(io.stdin ?? process.stdin) : readFileSync(resolve(io.cwd ?? process.cwd(), arg), 'utf8');
   } catch (e) {
-    fail(`✗ 无法读取稿件：${e.message}`);
+    fail(`✗ Cannot read brief: ${e.message}`);
     return 2;
   }
   if (!src.trim()) {
-    fail('✗ 稿件为空');
+    fail('✗ Brief is empty');
     return 2;
   }
   return fn(src);
@@ -127,7 +127,7 @@ async function readStream(stream) {
   return Buffer.concat(chunks).toString('utf8');
 }
 
-// 是否自动打开：--open 强制打开 > --no-open > AM_NO_OPEN（非 0）> CI 环境 > 配置 open。
+// Auto-open precedence: --open forces open > --no-open > AM_NO_OPEN (non-0) > CI env > open setting.
 export function shouldOpen(opts, env, config) {
   if (opts.open) return true;
   if (opts['no-open']) return false;
@@ -154,7 +154,7 @@ function cmdRender(src, opts, { print, fail, env, cwd }) {
 
   const comps = Object.entries(result.stats.components).map(([k, v]) => `${k}×${v}`).join(' ');
   print(`✓ ${file}`);
-  print(`  ${result.meta.template} · ${result.meta.theme} · ${result.stats.panels} 面板${comps ? ` · ${comps}` : ''}`);
+  print(`  ${result.meta.template} · ${result.meta.theme} · ${result.stats.panels} panels${comps ? ` · ${comps}` : ''}`);
   printWarnings(result.warnings, print, result.meta.style);
   if (shouldOpen(opts, env, config.values)) openFile(file);
   return 0;
@@ -169,7 +169,7 @@ function cmdLint(src, opts, { print, fail }) {
   }
   const style = opts.style ?? doc.meta.style;
   if (!CHOICES.style.includes(style)) {
-    fail(`✗ style 的值 "${style}" 无效，可选：${CHOICES.style.join(' | ')}`);
+    fail(`✗ Invalid value "${style}" for style, expected: ${CHOICES.style.join(' | ')}`);
     return 2;
   }
   const warnings = style === 'off' ? [] : lintDoc(doc);
@@ -178,26 +178,26 @@ function cmdLint(src, opts, { print, fail }) {
 }
 
 function printWarnings(warnings, print, style) {
-  if (style === 'off') return print('  STE 检查已关闭');
-  if (!warnings.length) return print('  STE ✓ 0 条警告');
-  print(`  STE ${warnings.length} 条警告（修正稿件后重新执行）：`);
+  if (style === 'off') return print('  STE checks off');
+  if (!warnings.length) return print('  STE ✓ 0 warnings');
+  print(`  STE ${warnings.length} warnings (fix the brief and re-run):`);
   warnings.slice(0, MAX_LISTED_WARNINGS).forEach((w) => print(`  ${formatWarning(w)}`));
-  if (warnings.length > MAX_LISTED_WARNINGS) print(`  … 另有 ${warnings.length - MAX_LISTED_WARNINGS} 条，用 am lint 查看全部`);
+  if (warnings.length > MAX_LISTED_WARNINGS) print(`  … ${warnings.length - MAX_LISTED_WARNINGS} more; run am lint to see all`);
 }
 
 function reportError(e, fail) {
   if (e instanceof RenderError) {
     fail(`✗ L${e.line} [${e.component}] ${e.message}`);
-    if (e.example) fail(`  正确示例：\n${e.example.replace(/^/gm, '    ')}`);
-    fail(`  完整语法：am help ${e.component}`);
+    if (e.example) fail(`  Correct example:\n${e.example.replace(/^/gm, '    ')}`);
+    fail(`  Full syntax: am help ${e.component}`);
     return 1;
   }
   if (e instanceof ParseError) {
-    fail(`✗ ${e.line ? `L${e.line} ` : ''}稿件解析失败：${e.message}`);
+    fail(`✗ ${e.line ? `L${e.line} ` : ''}Failed to parse brief: ${e.message}`);
     return 1;
   }
   if (e instanceof LintError) {
-    fail(`✗ ${e.message}，未生成页面：`);
+    fail(`✗ ${e.message}, no page generated:`);
     e.warnings.forEach((w) => fail(`  ${formatWarning(w)}`));
     return 1;
   }
@@ -210,21 +210,21 @@ function cmdConfig(args, { print, fail, env }) {
   const [action, key, value] = args;
   try {
     if (action === 'set') {
-      if (key === undefined || value === undefined) throw new ConfigError('用法：am config set <键> <值>');
+      if (key === undefined || value === undefined) throw new ConfigError('Usage: am config set <key> <value>');
       print(`✓ ${key} = ${showValue(setConfig(key, value, env))}`);
       return 0;
     }
     if (action === 'get') {
-      if (!CONFIG_KEYS[key]) throw new ConfigError(`没有配置项 "${key}"。可用：${Object.keys(CONFIG_KEYS).join(' | ')}`);
+      if (!CONFIG_KEYS[key]) throw new ConfigError(`No such setting "${key}". Available: ${Object.keys(CONFIG_KEYS).join(' | ')}`);
       print(showValue(readConfig(env).values[key]));
       return 0;
     }
     if (action === 'reset') {
       resetConfig(key, env);
-      print(key ? `✓ ${key} 已恢复默认` : '✓ 全部配置已恢复默认');
+      print(key ? `✓ ${key} reset to default` : '✓ All settings reset to defaults');
       return 0;
     }
-    if (action !== undefined) throw new ConfigError(`未知操作 "${action}"。用法：am config [set <键> <值> | get <键> | reset [键]]`);
+    if (action !== undefined) throw new ConfigError(`Unknown action "${action}". Usage: am config [set <key> <value> | get <key> | reset [key]]`);
   } catch (e) {
     if (!(e instanceof ConfigError)) throw e;
     fail(`✗ ${e.message}`);
@@ -232,27 +232,27 @@ function cmdConfig(args, { print, fail, env }) {
   }
   const { values, stored, warning, path } = readConfig(env);
   if (warning) fail(`! ${warning}`);
-  print(`配置文件：${path}`);
+  print(`Config file: ${path}`);
   for (const [k, spec] of Object.entries(CONFIG_KEYS)) {
     const mark = k in stored ? '*' : ' ';
     const options = spec.type === 'bool' ? 'on | off' : spec.choices.join(' | ');
-    print(`${mark} ${k.padEnd(7)}${showValue(values[k]).padEnd(10)}${spec.label}（${options}）`);
+    print(`${mark} ${k.padEnd(7)}${showValue(values[k]).padEnd(10)}${spec.label} (${options})`);
   }
-  if (env.AM_NO_OPEN && env.AM_NO_OPEN !== '0') print('注意：环境变量 AM_NO_OPEN 生效中，会覆盖 open 配置。');
-  print('* 表示你改过的值。修改：am config set <键> <值>；恢复默认：am config reset [键]');
+  if (env.AM_NO_OPEN && env.AM_NO_OPEN !== '0') print('Note: the AM_NO_OPEN env var is set and overrides the open setting.');
+  print('* = value you changed. Change: am config set <key> <value>; reset: am config reset [key]');
   return 0;
 }
 
 function cmdList(print) {
-  print('模板 (template):');
-  print('  sheet   图纸板：字母编号面板网格，适合一屏总览（默认）');
-  print('  doc     线性讲解：单栏阅读，≥3 个面板时带目录');
-  print('\n主题 (theme):');
+  print('Templates (template):');
+  print('  sheet   Blueprint board: letter-labeled panel grid, good for a single-screen overview (default)');
+  print('  doc     Linear explainer: single-column reading, with a TOC at 3+ panels');
+  print('\nThemes (theme):');
   for (const [name, t] of Object.entries(THEMES)) print(`  ${name.padEnd(10)}${t.label}`);
-  print('\n组件（围栏块语言名）:');
+  print('\nComponents (fence language name):');
   for (const c of COMPONENTS.values()) print(`  ${c.name.padEnd(10)}${c.summary}`);
-  print('  html/svg  原样嵌入（逃生口）');
-  print('\n语法：am help <组件名>；稿件格式：am help format');
+  print('  html/svg  Embedded as-is (escape hatch)');
+  print('\nSyntax: am help <component>; brief format: am help format');
 }
 
 function cmdHelp(name, { print, fail }) {
@@ -260,10 +260,10 @@ function cmdHelp(name, { print, fail }) {
   if (name === 'format') return print(FORMAT), 0;
   const comp = COMPONENTS.get(name);
   if (!comp) {
-    fail(`✗ 没有组件 "${name}"。可用：${[...COMPONENTS.keys()].join(', ')}, format`);
+    fail(`✗ No component "${name}". Available: ${[...COMPONENTS.keys()].join(', ')}, format`);
     return 2;
   }
-  print(`${comp.name} — ${comp.summary}\n\n${comp.syntax}\n\n示例：\n${comp.example}`);
+  print(`${comp.name} — ${comp.summary}\n\n${comp.syntax}\n\nExample:\n${comp.example}`);
   return 0;
 }
 
@@ -284,6 +284,6 @@ function openFile(file) {
   try {
     spawn(cmd, args, { detached: true, stdio: 'ignore' }).on('error', () => {}).unref();
   } catch {
-    // 打不开浏览器不影响产物，路径已打印。
+    // A browser open failure does not affect the output; the path is already printed.
   }
 }

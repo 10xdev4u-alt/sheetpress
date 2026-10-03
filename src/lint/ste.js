@@ -1,6 +1,8 @@
-// STE 受控写作检查（只约束稿件里的说明文字）。
-// 规则：句长、段长、非推荐词、英文被动语态、中文虚动词 / "的"字连用 / 套话。全部为警告，严格度由 style 决定。
-// 跳过：代码与行内代码、~~删除线~~（反例展示）、含 no 状态的表格行、标题、除 callout 外的组件。
+// STE controlled-writing check (constrains the explanatory prose in the brief only).
+// Rules: sentence length, paragraph length, discouraged words, English passive voice, Chinese light verbs /
+// chained de-particles / set phrases. All are warnings; strictness is set by style.
+// Skipped: code and inline code, ~~strikethrough~~ (counter-examples), table rows with a no status,
+// headings, and components other than callout.
 
 import { EN_WORDS } from './wordlist.en.js';
 import { ZH_LIGHT_VERBS, ZH_CLICHES } from './wordlist.zh.js';
@@ -54,7 +56,7 @@ function lintMarkdown(text, startLine, out) {
   let para = null;
   const flush = () => {
     if (para && para.count > MAX_SENTENCES) {
-      out.push({ line: para.line, rule: 'paragraph-length', message: `段落 ${para.count} 句（上限 ${MAX_SENTENCES}）` });
+      out.push({ line: para.line, rule: 'paragraph-length', message: `Paragraph has ${para.count} sentences (max ${MAX_SENTENCES})` });
     }
     para = null;
   };
@@ -90,31 +92,31 @@ function lintMarkdown(text, startLine, out) {
   flush();
 }
 
-// 检查一段文字（列表项 / 单元格 / 段落中的一行），返回句子数。
+// Check one unit of text (a list item / cell / one line inside a paragraph); returns the sentence count.
 function checkUnit(text, line, kind, out) {
   const sentences = splitSentences(text);
   for (const s of sentences) {
     const { lang, count } = sentenceLength(s);
     const limit = LIMITS[lang][kind];
     if (count > limit) {
-      const unit = lang === 'zh' ? '字' : 'words';
+      const unit = lang === 'zh' ? 'characters' : 'words';
       const preview = s.length > 24 ? `${s.slice(0, 24)}…` : s;
-      out.push({ line, rule: 'sentence-length', message: `${kind === 'procedural' ? '步骤' : '句子'} ${count} ${unit}（上限 ${limit}）："${preview}"` });
+      out.push({ line, rule: 'sentence-length', message: `${kind === 'procedural' ? 'Step' : 'Sentence'} has ${count} ${unit} (max ${limit}): "${preview}"` });
     }
     if (lang === 'en' && PASSIVE.test(s)) {
-      out.push({ line, rule: 'passive', message: `疑似被动语态："${s.match(PASSIVE)[0]}"`, suggestion: '改为主动语态' });
+      out.push({ line, rule: 'passive', message: `Possible passive voice: "${s.match(PASSIVE)[0]}"`, suggestion: 'Use the active voice' });
     }
   }
   const lexical = [
-    ...EN_RE.flatMap(({ re, suggestion }) => [...text.matchAll(re)].map((m) => ({ index: m.index, rule: 'word', message: `不推荐 "${m[0]}"`, suggestion }))),
-    ...ZH_LIGHT_VERBS.flatMap(({ re, label }) => [...text.matchAll(re)].map((m) => ({ index: m.index, rule: 'word', message: `虚动词 "${m[0]}"（${label}）`, suggestion: `直接用「${m[1]}」` }))),
+    ...EN_RE.flatMap(({ re, suggestion }) => [...text.matchAll(re)].map((m) => ({ index: m.index, rule: 'word', message: `Avoid "${m[0]}"`, suggestion }))),
+    ...ZH_LIGHT_VERBS.flatMap(({ re, label }) => [...text.matchAll(re)].map((m) => ({ index: m.index, rule: 'word', message: `Weak verb "${m[0]}" (${label})`, suggestion: `Use "${m[1]}" directly` }))),
   ];
   out.push(...lexical.sort((a, b) => a.index - b.index).map(({ index, ...w }) => ({ line, ...w })));
   for (const s of sentences) {
-    if ((s.match(/的/g) ?? []).length >= 3) out.push({ line, rule: 'de-chain', message: `"的"字连用：${s}`, suggestion: '拆句或删去多余的"的"' });
+    if ((s.match(/的/g) ?? []).length >= 3) out.push({ line, rule: 'de-chain', message: `Chained 的 particles: ${s}`, suggestion: 'Split the sentence or drop the extra 的' });
   }
   for (const c of ZH_CLICHES) {
-    if (text.includes(c)) out.push({ line, rule: 'cliche', message: `套话 "${c}"`, suggestion: '删除，或换成具体事实' });
+    if (text.includes(c)) out.push({ line, rule: 'cliche', message: `Set phrase "${c}"`, suggestion: 'Delete it, or replace with concrete facts' });
   }
   return sentences.length;
 }

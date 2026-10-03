@@ -1,11 +1,11 @@
-// sheet：图纸板。字母编号面板排成网格；blueprint 主题下外框带坐标刻度（纯装饰，无交互）。
+// sheet: blueprint board. Lettered panels laid out in a grid; under the blueprint theme the outer frame carries coordinate rulers (pure decoration, no interaction).
 import { panelHtml, headHtml } from './panel.js';
 
 const ruler = (side, labels) =>
   `<div class="am-ruler am-ruler--${side}" aria-hidden="true">${labels.map((l) => `<span>${l}</span>`).join('')}</div>`;
 
-// 按阅读顺序模拟网格：某面板之后的剩余列放不下下一个面板时，把它拉宽填满本行，避免留下空洞。
-// 有面板使用 rows 跨行时，行的占用关系复杂，直接保留作者的布局。
+// Simulate the grid in reading order: when the remaining columns in a row cannot fit the next panel, stretch the current one to fill the row and avoid gaps.
+// When a panel spans rows via `rows`, row occupancy gets complex, so keep the author's layout as-is.
 export function fillRows(panels, cols) {
   const spans = panels.map((p) => Math.max(1, Math.min(Number(p.attrs.span) || 1, cols)));
   if (panels.some((p) => Number(p.attrs.rows) > 1)) return spans;
