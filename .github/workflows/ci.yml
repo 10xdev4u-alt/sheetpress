@@ -19,10 +19,10 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Bundle is up to date
-        run: npm run build && git diff --exit-code skills/answer-me-with-html/scripts/am.mjs
+        run: npm run build && git diff --exit-code skills/sheetpress/scripts/sp.mjs
       - run: npm test
       - name: Render examples
         run: |
           for f in examples/*.md; do
-            node bin/am.js render "$f" --no-open -o "out/$(basename "$f" .md).html"
+            node bin/sheetpress.js render "$f" --no-open -o "out/$(basename "$f" .md).html"
           done
