@@ -9,16 +9,16 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const PKG = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
 
-// 模拟 npx skills add：只复制 skill 目录到隔离位置，确认打包版不依赖仓库里的任何文件。
-test('bundle: skill 目录单独复制出去后仍能渲染', () => {
+// Simulate `npx skills add`: copy only the skill directory to an isolated location and confirm the bundle has no dependency on any other repo file.
+test('bundle: skill dir still renders when copied out standalone', () => {
   const dir = mkdtempSync(join(tmpdir(), 'am-bundle-'));
   try {
-    cpSync(join(ROOT, 'skills/answer-me-with-html'), join(dir, 'answer-me-with-html'), { recursive: true });
-    const cli = join(dir, 'answer-me-with-html/scripts/am.mjs');
+    cpSync(join(ROOT, 'skills/sheetpress'), join(dir, 'sheetpress'), { recursive: true });
+    const cli = join(dir, 'sheetpress/scripts/sp.mjs');
     const env = { ...process.env, AM_NO_OPEN: '1' };
 
     const version = spawnSync(process.execPath, [cli, '--version'], { encoding: 'utf8', env });
-    assert.equal(version.stdout.trim(), PKG.version, '打包版版本号应与 package.json 一致（忘了 npm run build？）');
+    assert.equal(version.stdout.trim(), PKG.version, 'Bundled version must match package.json (did you forget npm run build?)');
 
     const out = join(dir, 'out.html');
     const r = spawnSync(process.execPath, [cli, 'render', '-', '-o', out], {
@@ -28,7 +28,7 @@ test('bundle: skill 目录单独复制出去后仍能渲染', () => {
     const html = readFileSync(out, 'utf8');
     assert.match(html, /<h1>打包测试<\/h1>/);
     assert.match(html, /class="am-node /);
-    assert.match(html, /--font-mono/, 'CSS 已内联');
+    assert.match(html, /--font-mono/, 'CSS is inlined');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
