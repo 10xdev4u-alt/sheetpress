@@ -307,7 +307,7 @@ npm run build     # after changing src/, rebuild skills/answer-me-with-html/scri
 
 There are two runtime dependencies: [marked](https://github.com/markedjs/marked) parses Markdown and [@dagrejs/dagre](https://github.com/dagrejs/dagre) lays out flow charts. Both are bundled into `am.mjs`.
 
-To refresh the demo video: screenshot each entry of [docs/demo/timeline.json](docs/demo/timeline.json) at 1920×1080 (scenes come from `scenes.html`, `terminal.html` and the rendered [examples/tcp.en.md](examples/tcp.en.md)), save them as `frame-00.png`, `frame-01.png` …, then run `node docs/demo/make-demo.mjs <frames-dir>`. The music is synthesized by [docs/demo/music.mjs](docs/demo/music.mjs) at 120 BPM, and every cut lands on a beat.
+To refresh the demo video: serve [docs/demo/demo.html](docs/demo/demo.html) next to the rendered [examples/tcp.en.md](examples/tcp.en.md) (`tcp.html`), open it at 1920×1080, wait for `window.ready`, then call `window.render(i / 30)` and screenshot `frame-0000.jpg` … `frame-0719.jpg`. Run `node docs/demo/make-demo.mjs <frames-dir>` to add the music and encode. The animation is deterministic, and the music from [docs/demo/music.mjs](docs/demo/music.mjs) is synthesized at 120 BPM, so every scene change lands on a beat.
 
 ## License
 
