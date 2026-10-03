@@ -1,131 +1,133 @@
 ---
-name: answer-me-with-html
-description: When an answer is complex, renders it as a one-page visual HTML explainer: the model writes only a short extended-Markdown draft; the bundled CLI handles templates, components, SVG auto-layout and an STE controlled-writing check, producing a single-file page in one call. Also use it when the user says `/answer-me-with-html config` or wants to change settings (auto-open browser, always-on mode, default theme). Use it proactively, without being asked, when the answer involves any of: 3+ interrelated concepts; a flow / protocol / architecture with branches or multiple actors; a comparison or trade-off across 3+ dimensions; a hierarchy (directories, modules, taxonomies); an evolution or phases; or the user says "explain how it works / I don’t get it / draw a diagram / explain this codebase / explain visually / 讲讲原理 / 没看懂 / 画个图 / 用 HTML 讲". Do not use for: short Q&A (clear in under ~150 words), commands to copy and run immediately, pure code changes, or when the user asks for plain text.
+name: sheetpress
+description: When an answer is complex, renders it as a one-page visual HTML explainer: the model writes only a short extended-Markdown draft; the bundled CLI handles templates, components, SVG auto-layout and an STE controlled-writing check, producing a single-file page in one call. Also use it when the user says `/sheetpress config` or wants to change settings (auto-open browser, always-on mode, default theme). Use it proactively, without being asked, when the answer involves any of: 3+ interrelated concepts; a flow / protocol / architecture with branches or multiple actors; a comparison or trade-off across 3+ dimensions; a hierarchy (directories, modules, taxonomies); an evolution or phases; or the user says "explain how it works / I do not get it / draw a diagram / explain this codebase / explain visually". Do not use for: short Q&A (clear in under ~150 words), commands to copy and run immediately, pure code changes, or when the user asks for plain text.
 ---
 
-# Answer me with HTML：用一页 HTML 回答复杂问题
+# Sheetpress: Answer Complex Questions with a One-Page HTML Page
 
-你只写**内容稿**（扩展 Markdown）。排版、配色、暗黑模式、图形坐标全部由 `am` CLI 完成。**不要手写 HTML / CSS / SVG。**
+You write only the **content draft** (extended Markdown). Layout, colors, dark mode, and all graphic coordinates are handled by the `sp` CLI. **Do not hand-write HTML / CSS / SVG.**
 
-## 0. 用户要改配置时
+## 0. When the User Wants to Change Configuration
 
-本次调用参数：`$ARGUMENTS`
+Call arguments for this invocation: `$ARGUMENTS`
 
-参数以 `config` 开头时（如 `/answer-me-with-html config open off`），这一轮只处理配置，不出页面：
+When the arguments start with `config` (for example `/sheetpress config open off`), handle only configuration in this turn and do not produce a page:
 
-- `config`：运行 `am config` 显示当前配置，然后问用户想改哪一项。
-- `config <键> <值>`：运行 `am config set <键> <值>`。
-- `config reset [键]`：运行 `am config reset [键]`。
+- `config`: run `sp config` to show the current configuration, then ask the user which item to change.
+- `config <key> <value>`: run `sp config set <key> <value>`.
+- `config reset [key]`: run `sp config reset [key]`.
 
-用户用自然语言提出时（"别再自动弹浏览器了""关掉高频模式""默认用卡片主题"），同样换算成 `am config set`。可配置项：`open`（自动打开浏览器）、`always`（高频模式）、`theme`、`mode`、`style`，运行 `am config` 可看全部说明。
+When the user asks in natural language ("stop opening the browser automatically", "turn off high-frequency mode", "use the card theme by default"), convert the request to the matching `sp config set` command. Configurable items: `open` (open the browser automatically), `always` (high-frequency mode), `theme`, `mode`, `style`; run `sp config` to see the full descriptions.
 
-## 1. 判断：要不要出页面
+## 1. Decide: Whether to Produce a Page
 
-满足任一条就出页面：
-- 有 ≥3 个相互关联的概念，读者需要看到它们的关系。
-- 有流程、协议、调用链、状态迁移（尤其带分支或多个参与者）。
-- 有 ≥3 个维度的对比、方案取舍、"能 / 不能"清单。
-- 有层级结构或时间演进。
+Produce a page when any one of the following holds:
 
-不满足就用普通文字回答。拿不准时，问题越"要看图才懂"，越该出页面。
+- There are 3 or more interrelated concepts, and the reader needs to see how they relate.
+- There is a flow, protocol, call chain, or state transition (especially with branches or multiple participants).
+- There is a comparison across 3 or more dimensions, a choice between options, or a can / cannot list.
+- There is a hierarchical structure or an evolution over time.
 
-### 高频模式
+Otherwise answer in plain text. When in doubt, the more the question needs a picture to be understood, the more you should produce a page.
 
-如果上下文里出现 `[answer-me-with-html always-on]` 提醒（用户装了 answer-me-with-html-always 插件，或在规则文件里开启了高频模式），门槛放低：
+### High-frequency mode
 
-- 只要这一轮给出了结论、总结、方案、对比、评审或讲解，就附一页。
-- 不要因为"答案不长"就跳过。有结论就出页。
-- 日常结论用 2～4 个面板的小页面：一个 callout 放结论，再配一张表或一张图。不要为了凑数加面板。
-- 渲染时加 `--no-open`，不要弹浏览器打断用户。用户点回复末尾的路径就能打开。
-- 终端里照常先给文字结论，最后一行附页面路径。
-- 闲聊、没有结论的一两句话、纯命令输出、用户要求纯文本时不出页面。
+If the context contains a `[sheetpress always-on]` reminder (the user installed the sheetpress-always plugin, or enabled high-frequency mode in a rules file), lower the threshold:
 
-## 2. 工作流（一次 Bash 调用）
+- Whenever this turn gives a conclusion, summary, proposal, comparison, review, or explanation, attach a page.
+- Do not skip just because the answer is short. If there is a conclusion, produce a page.
+- For everyday conclusions use a small page with 2-4 panels: one callout for the conclusion, plus one table or one figure. Do not add panels just to fill space.
+- Render with `--no-open` so you do not interrupt the user with a browser popup. The user can open the page from the path at the end of your reply.
+- In the terminal, still give the text conclusion first, and put the page path on the last line.
+- Do not produce a page for small talk, for one or two sentences with no conclusion, for pure command output, or when the user asks for plain text.
 
-CLI 已经打包在本 skill 目录里：`scripts/am.mjs`，单文件、无需安装依赖，只要有 Node.js 20+。下文的 `am` 都指：
+## 2. Workflow (One Bash Call)
+
+The CLI is bundled in this skill directory: `scripts/sp.mjs`, a single file with no dependencies to install, requiring only Node.js 20+. Every `sp` below refers to:
 
 ```bash
-node "${CLAUDE_SKILL_DIR}/scripts/am.mjs"
+node "<SKILLDIR>/scripts/sp.mjs"
 ```
 
-在 Claude Code 里，上面的路径会自动替换成本 skill 的目录。如果你看到的是没有替换的变量（其他 Agent），请换成这个 SKILL.md 所在目录的绝对路径。用户全局安装了 `am` 命令时，也可以直接用 `am`。
+In Claude Code, the path above is automatically replaced with this skill directory. If you see the unreplaced variable (other agents), replace it with the absolute path of the directory containing this SKILL.md. When the user has installed the `sp` command globally, you can use `sp` directly.
 
-1. 先在心里列出 3～8 个面板。每个面板只回答一个子问题。
-   稿件语言跟随用户提问的语言：英文提问写英文稿，中文提问写中文稿。页面按钮文字、`<html lang>` 和 STE 检查规则会根据稿件语言自动切换；STE 按每句的语言分别套用中英文规则。要强制界面语言，在 frontmatter 写 `lang: en` 或 `lang: zh`。
-2. 按信息形状选组件（见第 4 节）。
-3. 用 heredoc 一次性渲染：
+1. First list 3-8 panels in your head. Each panel answers exactly one sub-question.
+   The draft language follows the language of the user question: an English question gets an English draft. Page button text, `<html lang>`, and the STE check rules switch automatically based on the draft language; STE applies the English and Chinese rules per sentence according to each sentence language. To force the interface language, write `lang: en` or `lang: zh` in the frontmatter.
+2. Pick components by information shape (see Section 4).
+3. Render in one shot with a heredoc:
 
 ````bash
-node "${CLAUDE_SKILL_DIR}/scripts/am.mjs" render - <<'AM_EOF'
+node "<SKILLDIR>/scripts/sp.mjs" render - <<'SP_EOF'
 ---
-title: 标题
+title: Title
 ---
-## A 面板标题
+## A Panel title
 ```flow
-A -> B: 标签
+A -> B: label
 ```
-AM_EOF
+SP_EOF
 ````
 
-4. 读输出：
-   - `✓ <路径>`：成功。是否自动打开浏览器由用户配置决定（`am config`）；加 `--no-open` 只影响这一次。
-   - `✗ L<行号> [组件] …` + 正确示例：照示例改那一行，再渲染一次。
-   - `STE n 条警告`：按建议改写对应行，再渲染一次。最多重试 2 轮，仍有警告就保留页面并说明。
-5. 在终端只回 2～3 行：一句核心结论 + 页面路径。不要把稿件或 HTML 贴回终端。
+4. Read the output:
+   - `✓ <path>`: success. Whether the browser opens automatically is decided by the user configuration (`sp config`); adding `--no-open` affects only this run.
+   - `✗ L<line> [component] ...` plus a correct example: fix that line following the example, then render again.
+   - `STE n warnings`: rewrite the flagged lines following the suggestions, then render again. Retry at most 2 rounds; if warnings remain, keep the page and explain.
+5. In the terminal reply with only 2-3 lines: one core conclusion plus the page path. Do not paste the draft or the HTML back into the terminal.
 
-## 3. 稿件格式速查
+## 3. Draft Format Quick Reference
 
 ```markdown
 ---
-template: sheet     # sheet 图纸板（默认，一屏总览）| doc 线性讲解（逐步阅读）
-theme: blueprint    # blueprint 图纸风（默认）| shadcn 卡片风
-title: 标题
-subtitle: 一句话说明     # 可选
-cols: 3             # sheet 列数，默认 3；面板用 span / rows 跨列跨行
-source: RFC 9293    # 其他任意键显示在页头元信息行
+template: sheet     # sheet blueprint board (default, one-screen overview) | doc linear explainer (read step by step)
+theme: blueprint    # blueprint blueprint style (default) | shadcn card style
+title: Title
+subtitle: One-sentence description     # optional
+cols: 3             # sheet column count, default 3; panels span columns/rows with span / rows
+source: RFC 9293    # any other keys are shown in the header metadata line
 ---
-导语：一两句核心结论（可选）。
+Lead: one or two sentences with the core conclusion (optional).
 
-## A 面板标题 {span=2 meta="右上角小字"}
-普通 Markdown：段落、列表、表格、引用。
-表格状态词：ok / no / warn（可带文字："ok 已批准"）→ ✓ / ✗ / ! 徽章。
+## A Panel title {span=2 meta="small text at top right"}
+Plain Markdown: paragraphs, lists, tables, quotes.
+Table status words: ok / no / warn (with optional text: "ok approved") -> badge with check / cross / exclamation mark.
 
-## B {bare}            ← bare：无标题栏（适合放 kv 标题栏块）
+## B {bare}            <- bare: no title bar (good for kv title blocks)
 ```
 
-- 面板字母 ID 可省略，自动分配。
-- ```html / ```svg 围栏块原样嵌入，**只在组件确实表达不了时使用**。
-- 完整说明：`am help format`；组件语法：`am help <组件名>`；组件列表：`am list`。
+- The panel letter ID may be omitted; it is assigned automatically.
+- Fenced blocks of ```html / ```svg are embedded verbatim; **use them only when no component can express the content**.
+- Full specification: `sp help format`; component syntax: `sp help <component name>`; component list: `sp list`.
 
-## 4. 按信息形状选组件
+## 4. Pick Components by Information Shape
 
-| 信息形状 | 组件 | 最小写法 |
+| Information shape | Component | Minimal syntax |
 |---|---|---|
-| 谁连向谁、架构、决策分支 | `flow [LR]` | `A -> B: 标签`，`A --> C` 虚线，`A -> B & C` 扇出，`{判断?}` `(开始)` `[(数据库)]`，`*重点`，`group 名: A, B` |
-| 参与者之间按时间的消息 | `sequence [num]` | `A -> B: 请求`，`B --> A: 响应`，`note A, B: 说明`，`== 阶段 ==` |
-| 层级 / 目录 / 分类 | `tree [list]` | 缩进表达层级，`标签 \| 说明`，`` `编号` 标签 `` |
-| 历史 / 阶段 | `timeline [v]` | `时间 \| 标题 \| 说明`，`*` 高亮 |
-| 数值与上限 | `limits` | `标签 \| 13 / 20 \| 单位`，只写上限：`标签 \| max 20` |
-| 逐词点评一句话 | `annot` | `# 小标题 \| 右注`，`[片段]{注释}`，`[错词]{!红色注释}`，`> 底注` |
-| 元信息 / 标题栏 | `kv [cols=2]` | `键: 值`，`* 宽格: 值` |
-| 结论 / 警告 | `callout <info\|ok\|warn\|err> 标题` | 正文 Markdown |
-| 多维对比、能 / 不能清单 | Markdown 表格 | 状态列写 ok / no / warn |
+| Who connects to whom, architecture, decision branches | `flow [LR]` | `A -> B: label`, `A --> C` dashed line, `A -> B & C` fan-out, `{decision?}` `(start)` `[(database)]`, `*highlight`, `group name: A, B` |
+| Messages between participants over time | `sequence [num]` | `A -> B: request`, `B --> A: response`, `note A, B: note`, `== phase ==` |
+| Hierarchy / directories / categories | `tree [list]` | Indentation expresses hierarchy, `label \| description`, `` `number` label `` |
+| History / phases | `timeline [v]` | `time \| title \| description`, `*` highlight |
+| Values with limits | `limits` | `label \| 13 / 20 \| unit`, limit only: `label \| max 20` |
+| Word-by-word review of one sentence | `annot` | `# subtitle \| right note`, `[fragment]{comment}`, `[wrong word]{!red comment}`, `> footnote` |
+| Metadata / title block | `kv [cols=2]` | `key: value`, `* wide cell: value` |
+| Conclusion / warning | `callout <info\|ok\|warn\|err> title` | Body Markdown |
+| Multi-dimension comparison, can / cannot list | Markdown table | Write ok / no / warn in the status column |
 
-选型原则：
-- 先放结论。第一个面板或导语给出核心答案，后面的面板给证据。
-- 一个面板一个问题。超过 8 个面板就拆页或删减。
-- 用 `span` 给信息最密的面板更多宽度；等宽句子（annot）至少给 span=2。
-- 不编数据。没有真实数字就不用 limits；示意数据要在说明里写明"示意"。
+Selection principles:
 
-## 5. STE 受控写作（稿件里的文字）
+- Put the conclusion first. The first panel or the lead gives the core answer; later panels give the evidence.
+- One panel answers one question. With more than 8 panels, split the page or cut content.
+- Use `span` to give more width to the densest panel; sentence-length layouts (annot) need at least span=2.
+- Do not invent data. Without real numbers, do not use limits; mark illustrative data as "illustrative" in the description.
 
-`am render` 会自动检查，默认只警告（`style: 80`）；`style: strict` 不达标不生成；`style: off` 关闭。
+## 5. STE Controlled Writing (Text Inside the Draft)
 
-- 一句话只说一件事。
-- 用主动语态。步骤用祈使句（"关闭阀门"，不写"阀门应被关闭"）。
-- 一词一义。同一个东西全文用同一个叫法。
-- 句长上限：步骤（有序列表）英文 20 词 / 中文 35 字；描述英文 25 词 / 中文 45 字。
-- 每段不超过 6 句。复杂内容用列表。
-- 英文用常见短词：use 不用 utilize，start 不用 commence，before 不用 prior to。
-- 中文不用虚动词（"进行优化"→"优化"，"加以说明"→"说明"），不连用三个以上"的"，不用套话（赋能、闭环、至关重要……）。
-- 故意展示的反例用 `~~删除线~~`，或放进状态为 `no` 的表格行，检查会跳过它们。
+`sp render` checks automatically, warnings only by default (`style: 80`); `style: strict` does not generate output when the text fails the check; `style: off` disables the check.
+
+- One sentence states one thing.
+- Use active voice. Use imperative sentences for steps ("Close the valve", not "The valve should be closed").
+- One term keeps one meaning. Use the same name for the same thing throughout.
+- Sentence length limits: steps (ordered lists) English 20 words / Chinese 35 characters; descriptions English 25 words / Chinese 45 characters.
+- No more than 6 sentences per paragraph. Use lists for complex content.
+- In English use common short words: use instead of utilize, start instead of commence, before instead of prior to.
+- In Chinese avoid empty verbs (use the single verb instead of the wordy construction), avoid chaining three or more possessive particles in a row, and avoid empty slogans.
+- Counterexamples shown on purpose use `~~strikethrough~~`, or go into a table row with status `no`; the checker skips them.

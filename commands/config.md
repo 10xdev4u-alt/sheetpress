@@ -1,22 +1,22 @@
 ---
-description: View or change Answer me with HTML settings — auto-open browser, always-on mode, default theme, light/dark, STE strictness
-argument-hint: "[open|always|theme|mode|style <值>] | reset [键]"
+description: View or change SheetPress settings — auto-open browser, always-on mode, default theme, light/dark, STE strictness
+argument-hint: "[open|always|theme|mode|style <value>] | reset [key]"
 allowed-tools: Bash(node *)
 ---
 
-## 当前配置
+## Current configuration
 
-!`node "${CLAUDE_PLUGIN_ROOT}/skills/answer-me-with-html/scripts/am.mjs" config`
+!`node "${CLAUDE_PLUGIN_ROOT}/skills/sheetpress/scripts/sp.mjs" config`
 
-## 你要做的
+## What to do
 
-用户参数：`$ARGUMENTS`
+User arguments: `$ARGUMENTS`
 
-CLI：`node "${CLAUDE_PLUGIN_ROOT}/skills/answer-me-with-html/scripts/am.mjs" config …`
+CLI: `node "${CLAUDE_PLUGIN_ROOT}/skills/sheetpress/scripts/sp.mjs" config …`
 
-- **参数为空**：用 AskUserQuestion 让用户选。一次最多问 4 项，优先问：自动打开浏览器（open）、高频模式（always）、默认主题（theme）、明暗（mode）。把当前值标在选项里。用户选完后逐项执行 `config set`。
-- **`<键> <值>`**（如 `open off`）：直接执行 `config set <键> <值>`。
-- **`reset` 或 `reset <键>`**：执行 `config reset [键]`。
-- **自然语言**（如"别再弹浏览器了"）：换算成对应的键和值再执行。
+- **Empty arguments**: ask the user with AskUserQuestion. Ask at most 4 items at a time, prioritizing: auto-open browser (open), always-on mode (always), default theme (theme), light/dark (mode). Show the current value in each option. After the user answers, run `config set` for each item.
+- **`<key> <value>`** (e.g. `open off`): run `config set <key> <value>` directly.
+- **`reset` or `reset <key>`**: run `config reset [key]`.
+- **Natural language** (e.g. "stop popping up the browser"): convert it to the matching key and value, then run the command.
 
-改完后用一两句话说明改了什么。配置立即生效；高频模式的开关从用户下一条消息开始生效。不要生成解释页。
+After the change, explain what changed in one or two sentences. Settings take effect immediately; the always-on switch applies starting from the user's next message. Do not generate an explainer page.

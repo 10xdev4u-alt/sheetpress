@@ -1,244 +1,162 @@
-<p align="center">
-  <img src="docs/logo.svg" width="64" height="64" alt="Answer me with HTML logo">
-</p>
+# SheetPress
 
-<h1 align="center">Answer me with HTML</h1>
+Markdown in, single-file HTML explainer page out.
 
-<p align="center">
-  <b>An agent skill. Ask a hard question, get a page you can actually read instead of a wall of text.<br>The model writes about 1/7 of the tokens it would need to hand-write the HTML.</b>
-</p>
+SheetPress takes a short Markdown draft and renders it as a self-contained,
+single-file HTML page: panel layout, themes, light/dark mode, and diagrams
+with computed (not hand-drawn) SVG coordinates. Each page embeds the Markdown
+source it was built from, so any page can be copied back and re-rendered.
 
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
-  <a href="https://github.com/QingYunA/answer-me-with-html/actions/workflows/ci.yml"><img src="https://github.com/QingYunA/answer-me-with-html/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Cursor%20%C2%B7%20OpenCode-black" alt="Works with Claude Code, Codex, Cursor, OpenCode">
-</p>
+SheetPress is library-first. Use it from JavaScript:
 
-<p align="center">
-  <b>English</b> · <a href="README.zh-CN.md">简体中文</a>
-</p>
+```js
+import { renderDoc } from 'sheetpress';
 
-Once installed, ask questions the way you always do:
-
-```
-> Explain the TCP three-way handshake
-> Map out how the modules in this repo fit together
-> Redis or Memcached for our cache?
-```
-
-The agent writes a short Markdown draft and hands it to the CLI that ships with the skill. About 50 ms later you have a page:
-
-https://github.com/user-attachments/assets/1f13b1fe-70a9-4c39-8530-b12e553e17ea
-
-<p align="center"><sub>24-second demo. <a href="docs/demo/demo.mp4">Watch the MP4</a> for the version with music.</sub></p>
-
-## Why not just ask for HTML?
-
-You can. Models write decent HTML now. The problem is the bill you pay in output tokens: the model has to type every line of CSS, every wrapper `div` and every SVG coordinate. Output tokens are also what you sit and wait for.
-
-With this skill, the model writes only the content. We asked the same questions with the same model both ways (3 topics × 3 runs, medians, Claude Sonnet 5.5):
-
-| | Ask for HTML directly | Answer me with HTML | |
-| :--- | ---: | ---: | :--- |
-| Output tokens | 6,873 | **923** | **7.4× fewer** |
-| Time | 46 s | **13 s** | **3.6× faster** |
-| Cost per answer | $0.22 | $0.26 | about the same |
-
-<p align="center">
-  <img src="docs/images/plain-vs-skill.png" alt="The same TCP question answered both ways" width="100%">
-</p>
-
-<p align="center"><sub>Same prompt, same model. Both pages are usable. One took 9,351 output tokens, the other 899.</sub></p>
-
-Why the cost doesn't drop too: the skill adds two short turns (load the skill, run the CLI), and every turn re-reads the conversation context. You save the waiting, not the bill. Per-topic numbers and the script to reproduce them are in [bench/](bench/README.md).
-
-## Install
-
-You need [Node.js](https://nodejs.org/) 20 or newer. There is no `npm install` step. The CLI is bundled inside the skill.
-
-### Let your agent install it (recommended)
-
-Paste this into Claude Code, Codex, Cursor, OpenCode or any other agent:
-
-> Install the Answer me with HTML skill: run `npx -y skills add QingYunA/answer-me-with-html -g -y`, and pass `-a` with your own agent name (for Claude Code, `-a claude-code`). Then read its SKILL.md and use it to make a page that explains the TCP three-way handshake, so we know it works.
-
-### Claude Code plugin
-
-Run this inside Claude Code:
-
-```
-/plugin marketplace add QingYunA/answer-me-with-html
-/plugin install answer-me-with-html@answer-me-with-html
-```
-
-### One command
-
-```bash
-npx skills add QingYunA/answer-me-with-html
-```
-
-It asks which agents to install into. The installer, [vercel-labs/skills](https://github.com/vercel-labs/skills), supports more than 70 agents.
-
-<details>
-<summary>Manual install</summary>
-
-Copy the `skills/answer-me-with-html` folder into your agent's skill folder. For Claude Code:
-
-```bash
-git clone --depth 1 https://github.com/QingYunA/answer-me-with-html.git /tmp/answer-me-with-html
-cp -R /tmp/answer-me-with-html/skills/answer-me-with-html ~/.claude/skills/answer-me-with-html
-```
-
-Skill folders for other agents: Codex `~/.codex/skills/`, Cursor `~/.cursor/skills/`, OpenCode `~/.config/opencode/skill/`.
-
-</details>
-
-No setup is needed after install.
-
-## What you ask, what you get
-
-| You ask | You get |
-| :--- | :--- |
-| "Explain the TCP three-way handshake" | A sequence diagram, a state diagram and a flag table |
-| "How are the modules in this repo organized?" | A folder tree plus a call graph |
-| "Redis or Memcached?" | A comparison table with ✓ and ✗, then a verdict |
-| "What's wrong with this paragraph?" | Each sentence annotated, with the problem words and fixes |
-| "How did Kubernetes come about?" | A timeline with the key moments highlighted |
-| "How do I show hidden files with `ls`?" | No page. A one-line question gets a one-line answer |
-
-The agent decides when a page is worth it: related concepts, multi-step flows, multi-way comparisons. You can also just say "explain it in HTML".
-
-Pages are saved in `~/.answer-me-with-html/pages/`. The buttons in the top-right corner switch the theme and light/dark mode, and copy the Markdown that produced the page.
-
-## Settings
-
-Change settings with a slash command. There are no config files to edit by hand.
-
-| Where | How |
-| :--- | :--- |
-| Claude Code (plugin install) | `/answer-me-with-html:config` asks what to change. `/answer-me-with-html:config open off` changes it directly |
-| Any agent | `/answer-me-with-html config open off`, or just say "stop opening the browser" |
-| Terminal | `am config` to view, `am config set open off` to change, `am config reset` to restore defaults |
-
-| Key | Default | What it does |
-| :--- | :--- | :--- |
-| `open` | `on` | Open each page in the browser after it is made. Turn it off if pop-ups interrupt you |
-| `always` | `on` | Always-on mode (see below). Only matters when the always-on plugin is installed |
-| `theme` | `blueprint` | Default theme: `blueprint` or `shadcn` |
-| `mode` | `auto` | Default color mode: `auto`, `light` or `dark` |
-| `style` | `80` | Writing check: `off`, `80` (warn only) or `strict` (refuse to render) |
-
-Settings live in `~/.answer-me-with-html/config.json`. A theme written in a draft beats the default. `--open` and `--no-open` affect one run only.
-
-## Always-on mode (optional)
-
-By default, the agent makes a page only for questions that need one. If you want **a page with every conclusion**, turn on always-on mode.
-
-The agent then gets a short reminder each turn (about 90 tokens). Whenever it gives a conclusion, summary, plan or comparison, even a short one, it adds a small page with 2 to 4 panels and puts the path at the end of the reply. These pages never pop open, so they don't interrupt you. Casual chat and replies with no conclusion stay as they are. Claude Code makes no pages in plan mode.
-
-**Claude Code:** install one more plugin.
-
-```
-/plugin marketplace add QingYunA/answer-me-with-html
-/plugin install answer-me-with-html-always@answer-me-with-html
-```
-
-Pause it with `/answer-me-with-html:config always off`. You don't need to uninstall.
-
-**Other agents:** paste this to your agent so it writes the rule into its own rules file, such as `AGENTS.md`:
-
-> Turn on always-on mode for Answer me with HTML: add a global rule — "[answer-me-with-html always-on] Whenever a reply gives a conclusion, summary, plan, comparison, review or explanation, even a short one, also make a page with the answer-me-with-html skill (2 to 4 panels for routine answers), render it with --no-open, and end the reply with the page path. Skip casual chat, one- or two-sentence replies with no conclusion, pure command output, and requests for plain text."
-
-## Background
-
-Andrej Karpathy [posted](https://x.com/karpathy/status/2105819303471976479) that as LLMs do more of the work, keeping up with their output becomes the hard part. A diagram or a web page is far easier to take in than a long block of text.
-
-I tried asking agents to answer in HTML directly. The pages were good. They were also slow.
-
-A decent page took a minute or two. Most of that time went into hundreds of lines of CSS that were nearly the same every time. Diagrams were worse: the model had to compute SVG coordinates by hand, and arrows often pointed at nothing.
-
-So Answer me with HTML takes that work away from the model. The model writes content. The CLI handles layout, color and drawing.
-
-## How it works
-
-This is all the model writes:
-
-````markdown
----
+const { html, warnings, stats } = renderDoc(`---
 title: TCP three-way handshake
 ---
-## A Three-way handshake {span=2}
-```sequence num
+## Handshake {span=2}
+\`\`\`sequence
 Client -> Server: SYN, seq=x
 Server -> Client: SYN+ACK, seq=y, ack=x+1
 Client -> Server: ACK, ack=y+1
-note Client, Server: ESTABLISHED
+\`\`\`
+`);
+
+await Bun.write('out.html', html);
 ```
 
-## C State changes {span=2}
-```flow LR
-(CLOSED) -> LISTEN: passive open
-LISTEN -> SYN_RCVD: get SYN / send SYN+ACK
-SYN_RCVD -> *ESTABLISHED: get ACK
+It also ships with a CLI for terminal use and with an agent skill that lets a
+coding assistant write the draft and render the page for you.
+
+> Also available in [Simplified Chinese](README.zh-CN.md).
+> This project is a fork of
+> [QingYunA/answer-me-with-html](https://github.com/QingYunA/answer-me-with-html).
+> See [License](#license) for attribution.
+
+Project home: https://github.com/10xdev4u-alt/sheetpress
+
+## Why SheetPress
+
+A model that hand-writes a full HTML page must type every line of CSS, every
+wrapper element, and every SVG coordinate. That costs output tokens, and output
+tokens are what you wait for.
+
+With SheetPress the model writes only the content, a short Markdown draft
+(around 900 output tokens in our measurements instead of around 7,000). The
+library handles layout, color, and drawing. See [Benchmark](#benchmark) for
+numbers and [bench/README.md](bench/README.md) for the full methodology.
+
+## Install
+
+Requires Node.js 20 or newer.
+
+```bash
+npm install sheetpress
 ```
-````
 
-The CLI does the rest. It picks the template, places the panels, applies the theme, lays out the flow chart with [dagre](https://github.com/dagrejs/dagre) and spaces the sequence diagram by label width. The full draft, [examples/tcp.en.md](examples/tcp.en.md), becomes this page:
+Or clone the repository:
 
-<p align="center">
-  <img src="docs/images/tcp-en.png" alt="The TCP example page" width="100%">
-</p>
+```bash
+git clone https://github.com/10xdev4u-alt/sheetpress.git
+cd sheetpress
+npm install
+```
 
-## Features
+No global install is required. The CLI is included in the package.
 
-- **Fewer tokens, less waiting:** The model writes a short draft, about 900 output tokens, instead of 7,000 tokens of HTML, CSS and SVG. See the [benchmark](bench/README.md).
-- **Layout by code:** Panel placement and diagram coordinates are computed, not guessed. Labels don't get cut off, and there are no gaps in the grid.
-- **Fixes its own mistakes:** When a draft has an error, the CLI returns the line number, the component and a correct example. The agent fixes it in one try.
-- **Two themes:** `blueprint` looks like an engineering drawing. `shadcn` uses clean cards. Both have light and dark modes.
-- **One file, no dependencies:** Each page is a single `.html` with no CDN links or web fonts. It opens offline and is easy to share.
-- **Writing check:** Drafts are checked against rules adapted from ASD-STE100: long sentences, wordy phrases, passive voice. It only warns unless you ask for strict mode.
-- **Keeps its source:** Every page embeds the Markdown that made it. Click "Copy source" to get it back.
+## Quickstart
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/images/ste100.png" alt="Blueprint theme"></td>
-    <td width="50%"><img src="docs/images/tcp-en-dark.png" alt="shadcn theme, dark"></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Blueprint theme (<a href="examples/ste100.md">examples/ste100.md</a>)</sub></td>
-    <td align="center"><sub>shadcn theme, dark mode</sub></td>
-  </tr>
-</table>
+### Library
 
-## Components
+```js
+import { renderDoc } from 'sheetpress';
+import { writeFileSync } from 'node:fs';
 
-The agent picks a component by the shape of the information:
-
-| Component | Good for |
-| :--- | :--- |
-| `flow` | Architecture, call chains, decision branches. Auto layout, with groups, decisions and databases |
-| `sequence` | Messages going back and forth between several parties over time |
-| `tree` | Folders, modules, taxonomies |
-| `timeline` | History, releases, phases |
-| `limits` | A value against its limit |
-| `annot` | Word-by-word notes on a sentence |
-| `kv` | Metadata, a drawing's title block |
-| `callout` | A conclusion, a tip, a warning |
-| Table | Multi-way comparison. Write `ok` / `no` / `warn` in a cell to get ✓ ✗ ! |
-
-<details>
-<summary>Draft format (if you want to write drafts yourself)</summary>
-
-````markdown
+const source = `---
+title: Redis or Memcached?
+template: sheet
+theme: blueprint
+cols: 3
 ---
-template: sheet        # sheet = grid of panels (default), doc = one column with a table of contents
+Pick Redis for rich data structures and persistence; pick Memcached for a simple shared cache.
+
+## Verdict
+\`\`\`callout
+Redis wins unless you only need plain key/value caching.
+\`\`\`
+
+## Comparison
+| Aspect | Redis | Memcached |
+| :--- | :--- | :--- |
+| Data structures | ok | no |
+| Persistence | ok | no |
+| Simplicity | warn | ok |
+`;
+
+const { html, warnings, stats } = renderDoc(source);
+writeFileSync('compare.html', html);
+
+if (warnings.length) console.log(warnings);
+console.log(stats); // e.g. { panels: 2, components: { callout: 1 } }
+```
+
+`renderDoc(source, overrides, defaults)` returns `{ html, warnings, stats, meta }`:
+
+- `html` is the complete page as a string. Write it anywhere; it has no
+  external dependencies (no CDN links, no web fonts) and opens offline.
+- `warnings` lists findings from the STE controlled-writing check.
+  Pass `style: 'off'` in the frontmatter (or overrides) to skip it, or
+  `style: 'strict'` to throw instead of warning.
+- `overrides` lets you set `theme`, `template`, `mode`, or `style` per render
+  without editing the source.
+
+Related entry points: `sheetpress/render`, `sheetpress/parse`,
+`sheetpress/lint`, `sheetpress/components`.
+
+### CLI
+
+The package exposes three binary names for the same CLI: `sheetpress`, `sp`,
+and `am`. After a local install, run it with `npx`:
+
+```bash
+npx sheetpress render notes.md -o out.html --no-open
+npx sheetpress render notes.md --theme shadcn
+npx sheetpress lint notes.md
+npx sheetpress list
+npx sheetpress config
+```
+
+Read from stdin (this is how agents call it):
+
+```bash
+npx sheetpress render - <<'EOF'
+## One panel
+```flow
+A -> B: hello
+```
+EOF
+```
+
+Run `npx sheetpress help <component>` for a component's syntax, or
+`npx sheetpress help format` for the full draft format. Rendered pages are
+saved to a pages folder under your home directory unless `-o` is given; set
+the `AM_HOME` environment variable to move it.
+
+## Draft format
+
+Every `##` heading becomes a panel. The frontmatter controls the page:
+
+```markdown
+---
+template: sheet        # sheet = panel grid (default), doc = single column with a table of contents
 theme: blueprint       # blueprint or shadcn
 title: Page title
 subtitle: One line
-cols: 3                # columns for sheet
-source: RFC 9293       # any other field shows under the title
+cols: 3                # columns for the sheet template
+source: RFC 9293       # any other field is shown under the title
 ---
-A sentence or two with the main point.
+One or two sentences with the main point.
 
 ## A Panel title {span=2 meta="small text, top right"}
 Plain Markdown: paragraphs, lists, tables.
@@ -246,69 +164,177 @@ Plain Markdown: paragraphs, lists, tables.
 ```flow LR
 A -> B: label
 ```
-````
-
-- Every `## ` heading is a panel. The letters A, B, C are optional and added for you.
-- `span=2` makes a panel two columns wide, `rows=2` makes it two rows tall, and `bare` removes its title bar.
-- When no component fits, use a ```` ```html ```` or ```` ```svg ```` block to embed raw markup.
-
-Full syntax for a component: `am help <component>`.
-
-</details>
-
-<details>
-<summary>Use the CLI directly, without an agent</summary>
-
-The CLI is `scripts/am.mjs` inside the skill folder.
-
-````bash
-AM=skills/answer-me-with-html/scripts/am.mjs
-
-node $AM render examples/tcp.en.md                # render and open in the browser
-node $AM render notes.md -o out.html --no-open    # choose the output file, don't open
-node $AM render notes.md --theme shadcn           # pick a theme for this run
-node $AM lint notes.md                            # writing check only
-node $AM list                                     # list components
-node $AM config                                   # view settings
-
-# Read from stdin. This is how agents call it.
-node $AM render - <<'AM_EOF'
-## A One panel
-```flow
-A -> B: hello
 ```
-AM_EOF
-````
 
-Pages go to `~/.answer-me-with-html/pages/` by default. Set `AM_HOME` to move them.
+- `span=2` makes a panel two columns wide, `rows=2` makes it two rows tall,
+  and `bare` removes its title bar. The leading letters (A, B, C) are optional
+  and are added automatically.
+- When no component fits, embed raw markup in an `html` or `svg` fenced block.
 
-</details>
+See [examples/](examples/) for complete drafts, e.g.
+[examples/tcp.en.md](examples/tcp.en.md).
 
-## The STE writing check
+## Components
 
-[ASD-STE100](https://www.asd-ste100.org/) is a controlled form of English first used for aircraft maintenance manuals. Its rules are concrete: keep sentences short, give each word one meaning, write steps as commands. Karpathy noted that asking an LLM to follow these rules makes its writing much easier to read.
+The author picks a component by the shape of the information:
 
-Answer me with HTML turns the parts a machine can check into an English and Chinese rule set, and runs it on every render:
+| Component | Good for |
+| :--- | :--- |
+| `flow` | Architecture, call chains, decision branches. Automatic layout with groups, decisions, and databases |
+| `sequence` | Messages passed between parties over time |
+| `tree` | Folders, modules, taxonomies |
+| `timeline` | History, releases, phases |
+| `limits` | A value against its limit |
+| `annot` | Word-by-word notes on a sentence |
+| `kv` | Metadata, a drawing title block |
+| `callout` | A conclusion, a tip, a warning |
+| Table | Multi-way comparison. Write `ok` / `no` / `warn` in a cell for a check, cross, or alert mark |
+| `html` / `svg` | Raw markup embedded as-is (escape hatch) |
 
-- **Length:** Steps stay under 20 English words or 35 Chinese characters. Descriptions stay under 25 words or 45 characters. Paragraphs have at most 6 sentences.
-- **Words:** Prefer common words: "use", not "utilize"; "before", not "prior to". In Chinese, drop empty verbs: write 优化, not 进行优化.
-- **Style:** Flags English passive voice, three or more 的 in one sentence, and stock phrases such as 赋能 and 闭环.
+If a draft has an error, rendering fails with the line number, the component
+name, and a correct example, so the author (human or agent) can fix it in one
+pass.
 
-Set the strictness with `/answer-me-with-html:config style strict`, or per page with `style:` in the draft.
+## Templates and themes
+
+Two templates:
+
+| Template | Layout |
+| :--- | :--- |
+| `sheet` (default) | Grid of lettered panels, best for a one-screen overview |
+| `doc` | Single column with a table of contents (shown when there are 3+ panels), best for a linear explanation |
+
+Two themes, each with light and dark modes (`mode: auto`, `light`, or `dark`;
+`auto` follows the operating system setting, and the reader can switch theme
+and mode from buttons on the page):
+
+| Theme | Look |
+| :--- | :--- |
+| `blueprint` | Engineering drawing style |
+| `shadcn` | Clean cards style |
+
+Set defaults with config (see below) or per page with `theme:` / `template:` /
+`mode:` in the frontmatter. A value written in the draft beats the default; a
+CLI flag beats the draft for that run.
+
+## Config
+
+View or change settings with the `config` command. There is no need to edit
+files by hand.
+
+| Key | Default | What it does |
+| :--- | :--- | :--- |
+| `open` | `on` | Open each page in the browser after rendering. Turn it off if pop-ups interrupt you |
+| `always` | `on` | Always-on mode (see below). Only matters when the always-on plugin is installed |
+| `theme` | `blueprint` | Default theme: `blueprint` or `shadcn` |
+| `mode` | `auto` | Default color mode: `auto`, `light`, or `dark` |
+| `style` | `80` | Writing check: `off`, `80` (warn only), or `strict` (refuse to render) |
+
+```bash
+npx sheetpress config            # view settings
+npx sheetpress config set open off
+npx sheetpress config reset      # restore defaults
+```
+
+`--open` and `--no-open` on `render` affect one run only.
+
+Details for agent-driven configuration are in
+[commands/config.md](commands/config.md).
+
+## Agent skill install
+
+SheetPress ships as an agent skill: the assistant writes a short Markdown
+draft and hands it to the bundled CLI, which renders the page (this is where
+the token savings come from).
+
+### Let your agent install it (recommended)
+
+Paste this into Claude Code, Codex, Cursor, OpenCode, or any other agent:
+
+> Install the SheetPress skill: run `npx -y skills add 10xdev4u-alt/sheetpress -g -y`,
+> and pass `-a` with your own agent name (for Claude Code, `-a claude-code`).
+> Then read its SKILL.md and use it to make a page that explains the TCP
+> three-way handshake, so we know it works.
+
+### One command
+
+```bash
+npx skills add 10xdev4u-alt/sheetpress
+```
+
+It asks which agents to install into. The installer supports 70+ agents.
+
+### Claude Code plugin
+
+Run this inside Claude Code:
+
+```
+/plugin marketplace add 10xdev4u-alt/sheetpress
+/plugin install sheetpress@sheetpress
+```
+
+### Manual install
+
+Copy the `skills/sheetpress` folder into your agent's skill folder. For
+Claude Code:
+
+```bash
+git clone --depth 1 https://github.com/10xdev4u-alt/sheetpress.git /tmp/sheetpress
+cp -R /tmp/sheetpress/skills/sheetpress ~/.claude/skills/sheetpress
+```
+
+Skill folders for other agents: Codex `~/.codex/skills/`, Cursor
+`~/.cursor/skills/`, OpenCode `~/.config/opencode/skill/`.
+
+No setup is needed after install.
+
+### Always-on mode (optional)
+
+By default, the agent makes a page only for questions that need one. If you
+want a page with every conclusion, install the companion plugin:
+
+```
+/plugin marketplace add 10xdev4u-alt/sheetpress
+/plugin install sheetpress-always@sheetpress
+```
+
+The agent then gets a short reminder each turn (about 90 tokens). Whenever it
+gives a conclusion, summary, plan, or comparison, even a short one, it adds a
+small page with 2 to 4 panels and puts the path at the end of the reply. These
+pages never pop open, so they do not interrupt you. Pause it with
+`config always off`; you do not need to uninstall.
+
+## Benchmark
+
+Same questions, same model both ways (3 topics x 3 runs each, medians, Claude
+Sonnet 5.5). Full methodology and reproduction script: [bench/](bench/README.md).
+
+| | Ask for HTML directly | SheetPress | |
+| :--- | ---: | ---: | :--- |
+| Output tokens | 6,873 | 923 | 7.4x fewer |
+| Time | 46 s | 13 s | 3.6x faster |
+| Cost per answer | $0.22 | $0.26 | about the same |
+
+Cost does not drop because the skill adds two short turns (loading the skill,
+running the CLI), and every turn re-reads the conversation context. You save
+the waiting, not the bill.
 
 ## Development
 
 ```bash
-git clone https://github.com/QingYunA/answer-me-with-html.git && cd answer-me-with-html
+git clone https://github.com/10xdev4u-alt/sheetpress.git && cd sheetpress
 npm install
 npm test          # run the tests
-npm run build     # after changing src/, rebuild skills/answer-me-with-html/scripts/am.mjs
+npm run build     # rebuild the bundled CLI after changing src/
 ```
 
-There are two runtime dependencies: [marked](https://github.com/markedjs/marked) parses Markdown and [@dagrejs/dagre](https://github.com/dagrejs/dagre) lays out flow charts. Both are bundled into `am.mjs`.
-
-To refresh the demo video: serve [docs/demo/demo.html](docs/demo/demo.html) next to the rendered [examples/tcp.en.md](examples/tcp.en.md) (`tcp.html`), open it at 1920×1080, wait for `window.ready`, then call `window.render(i / 30)` and screenshot `frame-0000.jpg` … `frame-0719.jpg`. Run `node docs/demo/make-demo.mjs <frames-dir>` to add the music and encode. The animation is deterministic, and the music from [docs/demo/music.mjs](docs/demo/music.mjs) is synthesized at 120 BPM, so every scene change lands on a beat.
+There are two runtime dependencies:
+[marked](https://github.com/markedjs/marked) parses Markdown and
+[@dagrejs/dagre](https://github.com/dagrejs/dagre) lays out flow charts.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). SheetPress is a fork of
+[QingYunA/answer-me-with-html](https://github.com/QingYunA/answer-me-with-html);
+the original work is credited in the LICENSE file. This fork is maintained at
+https://github.com/10xdev4u-alt/sheetpress.

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// A/B 基准：同一模型、同一题目，对比"直接让 Agent 手写 HTML"与"用 Answer me with HTML"。
-// 记录 claude -p 返回的真实输出 token、耗时、花费与轮数。需要已安装 Claude Code 与本 skill。
-// 用法：node bench/run.mjs [model] [输出目录] [每组重复次数]
+// A/B benchmark: same model, same topic, comparing "have the agent hand-write HTML" vs "use Answer me with HTML".
+// Records the real output tokens, wall time, cost, and turn count returned by `claude -p`. Requires Claude Code and this skill to be installed.
+// Usage: node bench/run.mjs [model] [output dir] [reps per group]
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, existsSync, statSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -10,7 +10,7 @@ import { join, resolve } from 'node:path';
 const MODEL = process.argv[2] || 'sonnet';
 const OUT = resolve(process.argv[3] || 'bench/results');
 const REPS = Number(process.argv[4] || 3);
-// 可选：BENCH_TOPICS=tcp,git 只跑部分题目；BENCH_SUFFIX 追加到提示词末尾（如 "Write the page in English."）。
+// Optional: BENCH_TOPICS=tcp,git runs only a subset of topics; BENCH_SUFFIX is appended to the prompt (e.g. "Write the page in English.").
 const ONLY = process.env.BENCH_TOPICS?.split(',');
 const SUFFIX = process.env.BENCH_SUFFIX ? ` ${process.env.BENCH_SUFFIX}` : '';
 mkdirSync(OUT, { recursive: true });
@@ -38,7 +38,7 @@ const median = (xs) => {
   return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
 };
 
-// 每个题目 × 方式取中位数；overall 为三题中位数的平均。
+// Take the median per topic x mode; overall is the mean of the per-topic medians.
 function summarize(rows) {
   const ok = rows.filter((r) => r.ok);
   const by = {};
