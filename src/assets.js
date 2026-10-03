@@ -1,5 +1,5 @@
-// 运行时需要的静态资源集中在这里。开发时从磁盘读取；打包（scripts/build.mjs）时整个模块被替换成内联字符串，
-// 因此产物 skills/answer-me-with-html/scripts/am.mjs 不依赖任何外部文件。
+// Static assets needed at runtime live here. They are read from disk during development; when bundling (scripts/build.mjs) the whole module is replaced with inline strings,
+// The bundled skills/sheetpress/scripts/sp.mjs therefore has no runtime dependency on external files.
 import { readFileSync } from 'node:fs';
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
