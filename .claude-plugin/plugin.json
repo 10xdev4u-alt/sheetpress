@@ -1,12 +1,12 @@
 {
-  "name": "answer-me-with-html",
+  "name": "sheetpress",
   "description": "Answer hard questions with a one-page HTML: the model writes a short Markdown draft; the bundled CLI handles templates, SVG auto-layout and an STE controlled-writing check.",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "author": {
-    "name": "QingYunA"
+    "name": "10xdev4u-alt"
   },
-  "homepage": "https://github.com/QingYunA/answer-me-with-html",
-  "repository": "https://github.com/QingYunA/answer-me-with-html",
+  "homepage": "https://github.com/10xdev4u-alt/sheetpress",
+  "repository": "https://github.com/10xdev4u-alt/sheetpress",
   "license": "MIT",
   "keywords": [
     "html",

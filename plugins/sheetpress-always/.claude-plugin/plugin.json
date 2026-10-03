@@ -1,11 +1,11 @@
 {
-  "name": "answer-me-with-html-always",
+  "name": "sheetpress-always",
   "description": "Optional always-on mode: reminds the agent every turn to attach a one-page HTML whenever it gives a conclusion, summary, plan or comparison. Requires answer-me-with-html.",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "author": {
-    "name": "QingYunA"
+    "name": "10xdev4u-alt"
   },
-  "homepage": "https://github.com/QingYunA/answer-me-with-html",
-  "repository": "https://github.com/QingYunA/answer-me-with-html",
+  "homepage": "https://github.com/10xdev4u-alt/sheetpress-always",
+  "repository": "https://github.com/10xdev4u-alt/sheetpress-always",
   "license": "MIT"
 }

@@ -1,11 +1,12 @@
 {
-  "name": "answer-me-with-html",
-  "version": "0.2.2",
-  "description": "LLM 写 Markdown 内容稿，CLI 秒出零依赖单文件 HTML 解释页（模板 + slot + SVG 自动布局 + STE 受控写作检查）",
+  "name": "sheetpress",
+  "version": "1.0.0",
+  "description": "Markdown in, single-file HTML explainer page out. Library-first: import renderDoc, or use the bundled zero-dependency CLI.",
   "type": "module",
   "bin": {
-    "am": "bin/am.js",
-    "answer-me-with-html": "bin/am.js"
+    "sheetpress": "bin/sheetpress.js",
+    "sp": "bin/sheetpress.js",
+    "am": "bin/am.js"
   },
   "files": [
     "bin",
@@ -28,7 +29,8 @@
     "html",
     "explainer",
     "diagram",
-    "ste100"
+    "ste100",
+    "markdown"
   ],
   "license": "MIT",
   "dependencies": {
@@ -37,13 +39,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/QingYunA/answer-me-with-html.git"
+    "url": "git+https://github.com/10xdev4u-alt/sheetpress.git"
   },
-  "homepage": "https://github.com/QingYunA/answer-me-with-html#readme",
+  "homepage": "https://github.com/10xdev4u-alt/sheetpress#readme",
   "bugs": {
-    "url": "https://github.com/QingYunA/answer-me-with-html/issues"
+    "url": "https://github.com/10xdev4u-alt/sheetpress/issues"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./render": "./src/render.js",
+    "./parse": "./src/parse.js",
+    "./lint": "./src/lint/ste.js",
+    "./components": "./src/components/index.js"
   }
 }
