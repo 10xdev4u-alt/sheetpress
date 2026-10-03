@@ -32,7 +32,7 @@ The agent writes a short Markdown draft and hands it to the CLI that ships with 
   <img src="docs/demo/demo.gif" alt="Demo: the agent answers in the terminal and links a generated page" width="100%">
 </p>
 
-<p align="center"><sub>18-second demo. <a href="docs/demo/demo.mp4">Download the MP4</a>.</sub></p>
+<p align="center"><sub>24-second demo. <a href="docs/demo/demo.mp4">Watch the MP4</a> for the version with music.</sub></p>
 
 ## Why not just ask for HTML?
 
@@ -309,7 +309,7 @@ npm run build     # after changing src/, rebuild skills/answer-me-with-html/scri
 
 There are two runtime dependencies: [marked](https://github.com/markedjs/marked) parses Markdown and [@dagrejs/dagre](https://github.com/dagrejs/dagre) lays out flow charts. Both are bundled into `am.mjs`.
 
-To refresh the demo, take the frames from [docs/demo/terminal.html](docs/demo/terminal.html) and the rendered [examples/tcp.en.md](examples/tcp.en.md), then run `node docs/demo/make-gif.mjs <frames-dir>`.
+To refresh the demo video: screenshot each entry of [docs/demo/timeline.json](docs/demo/timeline.json) at 1920×1080 (scenes come from `scenes.html`, `terminal.html` and the rendered [examples/tcp.en.md](examples/tcp.en.md)), save them as `frame-00.png`, `frame-01.png` …, then run `node docs/demo/make-demo.mjs <frames-dir>`. The music is synthesized by [docs/demo/music.mjs](docs/demo/music.mjs) at 120 BPM, and every cut lands on a beat.
 
 ## License
 

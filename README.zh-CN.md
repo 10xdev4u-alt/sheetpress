@@ -32,7 +32,7 @@ Agent 会写一份很短的 Markdown 稿件，交给 skill 自带的 CLI。大�
   <img src="docs/demo/demo.gif" alt="演示：Agent 在终端回答，并附上生成的页面" width="100%">
 </p>
 
-<p align="center"><sub>18 秒演示。<a href="docs/demo/demo.mp4">下载 MP4</a>。</sub></p>
+<p align="center"><sub>24 秒演示。带音乐的版本请看 <a href="docs/demo/demo.mp4">MP4</a>。</sub></p>
 
 ## 为什么不直接让 AI 输出 HTML？
 
@@ -309,7 +309,7 @@ npm run build     # 改了 src/ 之后，重新打包 skills/answer-me-with-html
 
 运行时依赖只有两个：[marked](https://github.com/markedjs/marked) 负责解析 Markdown，[@dagrejs/dagre](https://github.com/dagrejs/dagre) 负责流程图布局。打包时它们会被一起打进 `am.mjs`。
 
-更新演示动图：用 [docs/demo/terminal.html](docs/demo/terminal.html) 和渲染好的 [examples/tcp.en.md](examples/tcp.en.md) 截好帧，再执行 `node docs/demo/make-gif.mjs <帧目录>`。
+更新演示视频：按 [docs/demo/timeline.json](docs/demo/timeline.json) 逐条用 1920×1080 截图（镜头来自 `scenes.html`、`terminal.html` 和渲染好的 [examples/tcp.en.md](examples/tcp.en.md)），保存为 `frame-00.png`、`frame-01.png`……，再执行 `node docs/demo/make-demo.mjs <帧目录>`。背景音乐由 [docs/demo/music.mjs](docs/demo/music.mjs) 按 120 BPM 现场合成，每个镜头切换都卡在节拍上。
 
 ## License
 
